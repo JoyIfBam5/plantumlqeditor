@@ -7,6 +7,7 @@ class QAction;
 class QMenu;
 class QTextEdit;
 class QSvgWidget;
+class QProcess;
 
 class MainWindow : public QMainWindow
 {
@@ -18,6 +19,8 @@ public:
 
 private slots:
     void about();
+    void refresh();
+    void refreshFinished();
 
 private:
     void newDocument();
@@ -28,8 +31,10 @@ private:
     void createStatusBar();
     void createDockWindows();
 
+    QProcess *m_process;
+
     QTextEdit *m_textEdit;
-    QSvgWidget *m_umlPreview;
+    QSvgWidget *m_preview;
 
     QMenu *m_fileMenu;
     QMenu *m_viewMenu;
@@ -44,8 +49,8 @@ private:
 
     QAction *m_quitAction;
 
-    QAction *m_umlPreviewViewAction;
-    QAction *m_refreshAction;
+    QAction *m_previewViewAction;
+    QAction *m_previewRefreshAction;
 
     QAction *m_aboutAction;
     QAction *m_aboutQtAction;
