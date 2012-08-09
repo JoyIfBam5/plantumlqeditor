@@ -50,6 +50,9 @@ private:
 
     QAction *m_quitAction;
 
+    QAction *m_pngPreviewAction;
+    QAction *m_svgPreviewAction;
+
     QAction *m_previewViewAction;
     QAction *m_previewRefreshAction;
 

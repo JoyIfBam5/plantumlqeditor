@@ -61,7 +61,17 @@ void MainWindow::refresh()
 
     QString program = JAVA_PATH;
     QStringList arguments;
-    arguments << "-jar" << PLANTUML_JAR << "-tpng" << "-pipe";
+    QString output;
+
+    if (m_svgPreviewAction->isChecked()) {
+        output = "-tsvg";
+        m_preview->setMode(PreviewWidget::SvgMode);
+    } else {
+        output = "-tpng";
+        m_preview->setMode(PreviewWidget::PngMode);
+    }
+
+    arguments << "-jar" << PLANTUML_JAR << output << "-pipe";
 
     m_process = new QProcess(this);
     m_process->start(program, arguments);
@@ -79,7 +89,7 @@ void MainWindow::refresh()
 void MainWindow::refreshFinished()
 {
     QByteArray output = m_process->readAll();
-    m_preview->loadImage(output);
+    m_preview->load(output);
     m_process->deleteLater();
     m_process = 0;
 }
@@ -102,6 +112,20 @@ void MainWindow::createActions()
     m_quitAction->setShortcuts(QKeySequence::Quit);
     m_quitAction->setStatusTip(tr("Quit the application"));
     connect(m_quitAction, SIGNAL(triggered()), this, SLOT(close()));
+
+    m_pngPreviewAction = new QAction(tr("PNG"), this);
+    m_pngPreviewAction->setCheckable(true);
+    m_pngPreviewAction->setStatusTip(tr("Set PlantUML to produce PNG output"));
+
+    m_svgPreviewAction = new QAction(tr("SVG"), this);
+    m_svgPreviewAction->setCheckable(true);
+    m_svgPreviewAction->setStatusTip(tr("Set PlantUML to produce SVG output"));
+
+    QActionGroup* output_action_group = new QActionGroup(this);
+    output_action_group->setExclusive(true);
+    output_action_group->addAction(m_pngPreviewAction);
+    output_action_group->addAction(m_svgPreviewAction);
+    m_svgPreviewAction->setChecked(true);
 
     m_previewRefreshAction = new QAction(QIcon::fromTheme("view-refresh"), tr("Refresh"), this);
     m_previewRefreshAction->setShortcuts(QKeySequence::Refresh);
@@ -131,6 +155,10 @@ void MainWindow::createMenus()
     m_viewMenu->addAction(m_previewViewAction);
     m_viewMenu->addSeparator();
     m_viewMenu->addAction(m_previewRefreshAction);
+
+    m_viewMenu->addSeparator();
+    m_viewMenu->addAction(m_pngPreviewAction);
+    m_viewMenu->addAction(m_svgPreviewAction);
 
     menuBar()->addSeparator();
 
