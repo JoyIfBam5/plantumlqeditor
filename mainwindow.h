@@ -6,6 +6,7 @@
 class QAction;
 class QMenu;
 class QTextEdit;
+class QSvgWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -28,12 +29,13 @@ private:
     void createDockWindows();
 
     QTextEdit *m_textEdit;
+    QSvgWidget *m_umlPreview;
 
     QMenu *m_fileMenu;
     QMenu *m_viewMenu;
     QMenu *m_helpMenu;
 
-    QToolBar *m_fileToolBar;
+    QToolBar *m_mainToolBar;
 
     QAction *m_newDocumentAction;
     QAction *m_openDocumentAction;
@@ -41,6 +43,9 @@ private:
     QAction *m_saveAsDocumentAction;
 
     QAction *m_quitAction;
+
+    QAction *m_umlPreviewViewAction;
+    QAction *m_refreshAction;
 
     QAction *m_aboutAction;
     QAction *m_aboutQtAction;
