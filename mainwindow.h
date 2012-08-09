@@ -6,8 +6,9 @@
 class QAction;
 class QMenu;
 class QTextEdit;
-class QSvgWidget;
 class QProcess;
+
+class PreviewWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -34,7 +35,7 @@ private:
     QProcess *m_process;
 
     QTextEdit *m_textEdit;
-    QSvgWidget *m_preview;
+    PreviewWidget *m_preview;
 
     QMenu *m_fileMenu;
     QMenu *m_viewMenu;

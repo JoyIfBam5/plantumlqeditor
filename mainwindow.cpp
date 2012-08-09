@@ -1,6 +1,7 @@
 #include "mainwindow.h"
+#include "previewwidget.h"
+
 #include <QtGui>
-#include <QSvgWidget>
 
 namespace {
 const int STATUS_BAR_TIMEOUT = 5000; // in miliseconds
@@ -33,6 +34,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::newDocument()
 {
+    QString text = "@startuml\n\nclass Foo\n\n@enduml";
+    m_textEdit->setPlainText(text);
 }
 
 void MainWindow::about()
@@ -58,7 +61,7 @@ void MainWindow::refresh()
 
     QString program = JAVA_PATH;
     QStringList arguments;
-    arguments << "-jar" << PLANTUML_JAR << "-tsvg" << "-pipe";
+    arguments << "-jar" << PLANTUML_JAR << "-tpng" << "-pipe";
 
     m_process = new QProcess(this);
     m_process->start(program, arguments);
@@ -76,7 +79,7 @@ void MainWindow::refresh()
 void MainWindow::refreshFinished()
 {
     QByteArray output = m_process->readAll();
-    m_preview->load(output);
+    m_preview->loadImage(output);
     m_process->deleteLater();
     m_process = 0;
 }
@@ -157,7 +160,7 @@ void MainWindow::createStatusBar()
 void MainWindow::createDockWindows()
 {
     QDockWidget *dock = new QDockWidget(tr("UML diagram"), this);
-    m_preview = new QSvgWidget(dock);
+    m_preview = new PreviewWidget(dock);
     dock->setWidget(m_preview);
     addDockWidget(Qt::RightDockWidgetArea, dock);
 
