@@ -37,25 +37,32 @@ private:
     QTextEdit *m_textEdit;
     PreviewWidget *m_preview;
 
-    QMenu *m_fileMenu;
-    QMenu *m_viewMenu;
-    QMenu *m_helpMenu;
-
     QToolBar *m_mainToolBar;
 
+    QMenu *m_fileMenu;
     QAction *m_newDocumentAction;
     QAction *m_openDocumentAction;
     QAction *m_saveDocumentAction;
     QAction *m_saveAsDocumentAction;
-
     QAction *m_quitAction;
 
+    QMenu *m_editMenu;
+    QAction *m_undoAction;
+    QAction *m_redoAction;
+    QAction *m_refreshAction;
+
+    QMenu *m_settingsMenu;
+    QAction *m_showAssistantAction;
+    QAction *m_showCodeAction;
+    QAction *m_showPreviewAction; // obsolete!
+    QAction *m_showMainToolbarAction;
+    QAction *m_showStatusBarAction;
     QAction *m_pngPreviewAction;
     QAction *m_svgPreviewAction;
+    QAction *m_previewAutoRefreshAction;
+    QAction *m_configureAction;
 
-    QAction *m_previewViewAction;
-    QAction *m_previewRefreshAction;
-
+    QMenu *m_helpMenu;
     QAction *m_aboutAction;
     QAction *m_aboutQtAction;
 };

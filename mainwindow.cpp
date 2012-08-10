@@ -96,6 +96,7 @@ void MainWindow::refreshFinished()
 
 void MainWindow::createActions()
 {
+    // File menu
     m_newDocumentAction = new QAction(QIcon::fromTheme("document-new"), tr("&New"), this);
     m_newDocumentAction->setShortcut(QKeySequence::New);
 
@@ -113,6 +114,14 @@ void MainWindow::createActions()
     m_quitAction->setStatusTip(tr("Quit the application"));
     connect(m_quitAction, SIGNAL(triggered()), this, SLOT(close()));
 
+    // Edit menu
+    m_undoAction = new QAction(QIcon::fromTheme("edit-undo"), tr("&Undo"), this);
+    m_undoAction->setShortcuts(QKeySequence::Undo);
+
+    m_redoAction = new QAction(QIcon::fromTheme("edit-redo"), tr("&Redo"), this);
+    m_redoAction->setShortcuts(QKeySequence::Redo);
+
+    // Tools menu
     m_pngPreviewAction = new QAction(tr("PNG"), this);
     m_pngPreviewAction->setCheckable(true);
     m_pngPreviewAction->setStatusTip(tr("Set PlantUML to produce PNG output"));
@@ -127,11 +136,30 @@ void MainWindow::createActions()
     output_action_group->addAction(m_svgPreviewAction);
     m_svgPreviewAction->setChecked(true);
 
-    m_previewRefreshAction = new QAction(QIcon::fromTheme("view-refresh"), tr("Refresh"), this);
-    m_previewRefreshAction->setShortcuts(QKeySequence::Refresh);
-    m_previewRefreshAction->setStatusTip(tr("Call PlantUML to regenerate the UML preview"));
-    connect(m_previewRefreshAction, SIGNAL(triggered()), this, SLOT(refresh()));
+    m_refreshAction = new QAction(QIcon::fromTheme("view-refresh"), tr("Refresh"), this);
+    m_refreshAction->setShortcuts(QKeySequence::Refresh);
+    m_refreshAction->setStatusTip(tr("Call PlantUML to regenerate the UML preview"));
+    connect(m_refreshAction, SIGNAL(triggered()), this, SLOT(refresh()));
 
+    bool auto_refresh_is_checked = false; // TODO: load from INI file
+    m_previewAutoRefreshAction = new QAction(tr("Auto-Refresh"), this);
+    m_previewAutoRefreshAction->setCheckable(true);
+    m_previewAutoRefreshAction->setChecked(auto_refresh_is_checked);
+
+    // Settings menu
+    const bool main_toolbar_is_visible = true; // TODO: load from INI file
+    m_showMainToolbarAction = new QAction(tr("Show toolbar"), this);
+    m_showMainToolbarAction->setCheckable(true);
+    m_showMainToolbarAction->setChecked(main_toolbar_is_visible);
+
+    const bool statusbar_is_visible = true; // TODO: load from INI file
+    m_showStatusBarAction = new QAction(tr("Show statusbar"), this);
+    m_showStatusBarAction->setCheckable(true);
+    m_showStatusBarAction->setChecked(statusbar_is_visible);
+    statusBar()->setVisible(m_showStatusBarAction->isChecked());
+    connect(m_showStatusBarAction, SIGNAL(toggled(bool)), statusBar(), SLOT(setVisible(bool)));
+
+    // Help menu
     m_aboutAction = new QAction(QIcon::fromTheme("help-about"), tr("&About"), this);
     m_aboutAction->setStatusTip(tr("Show the application's About box"));
     connect(m_aboutAction, SIGNAL(triggered()), this, SLOT(about()));
@@ -151,14 +179,21 @@ void MainWindow::createMenus()
     m_fileMenu->addSeparator();
     m_fileMenu->addAction(m_quitAction);
 
-    m_viewMenu = menuBar()->addMenu(tr("&View"));
-    m_viewMenu->addAction(m_previewViewAction);
-    m_viewMenu->addSeparator();
-    m_viewMenu->addAction(m_previewRefreshAction);
+    m_editMenu = menuBar()->addMenu(tr("&Edit"));
+    m_editMenu->addAction(m_undoAction);
+    m_editMenu->addAction(m_redoAction);
+    m_editMenu->addSeparator();
+    m_editMenu->addAction(m_refreshAction);
 
-    m_viewMenu->addSeparator();
-    m_viewMenu->addAction(m_pngPreviewAction);
-    m_viewMenu->addAction(m_svgPreviewAction);
+    m_settingsMenu = menuBar()->addMenu(tr("&Settings"));
+    m_settingsMenu->addAction(m_showMainToolbarAction);
+    m_settingsMenu->addAction(m_showStatusBarAction);
+    m_settingsMenu->addAction(m_showPreviewAction);
+    m_settingsMenu->addSeparator();
+    m_settingsMenu->addAction(m_pngPreviewAction);
+    m_settingsMenu->addAction(m_svgPreviewAction);
+    m_settingsMenu->addSeparator();
+    m_settingsMenu->addAction(m_previewAutoRefreshAction);
 
     menuBar()->addSeparator();
 
@@ -175,9 +210,12 @@ void MainWindow::createToolBars()
     m_mainToolBar->addAction(m_saveDocumentAction);
     m_mainToolBar->addAction(m_saveAsDocumentAction);
     m_mainToolBar->addSeparator();
-    m_mainToolBar->addAction(m_previewViewAction);
+    m_mainToolBar->addAction(m_showPreviewAction);
     m_mainToolBar->addSeparator();
-    m_mainToolBar->addAction(m_previewRefreshAction);
+    m_mainToolBar->addAction(m_refreshAction);
+
+    m_mainToolBar->setVisible(m_showMainToolbarAction->isChecked());
+    connect(m_showMainToolbarAction, SIGNAL(toggled(bool)), m_mainToolBar, SLOT(setVisible(bool)));
 }
 
 void MainWindow::createStatusBar()
@@ -192,8 +230,8 @@ void MainWindow::createDockWindows()
     dock->setWidget(m_preview);
     addDockWidget(Qt::RightDockWidgetArea, dock);
 
-    m_previewViewAction = dock->toggleViewAction();
-    m_previewViewAction->setIconVisibleInMenu(false);
-    m_previewViewAction->setStatusTip("Show or hide the UML diagram");
-    m_previewViewAction->setIcon(QIcon::fromTheme("image-x-generic"));
+    m_showPreviewAction = dock->toggleViewAction();
+    m_showPreviewAction->setIconVisibleInMenu(false);
+    m_showPreviewAction->setStatusTip("Show or hide the UML diagram");
+    m_showPreviewAction->setIcon(QIcon::fromTheme("image-x-generic"));
 }
