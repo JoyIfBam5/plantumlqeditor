@@ -8,7 +8,12 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    previewwidget.cpp
+    previewwidget.cpp \
+    preferencesdialog.cpp
 
 HEADERS  += mainwindow.h \
-    previewwidget.h
+    previewwidget.h \
+    preferencesdialog.h
+
+FORMS += \
+    preferencesdialog.ui

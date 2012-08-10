@@ -27,6 +27,7 @@ private slots:
     void onAutoRefreshActionToggled(bool state);
     void onDocumentChanged();
     void onRefreshActionTriggered();
+    void onPreferencesActionTriggered();
 
 private:
     enum ImageFormat { SvgFormat, PngFormat };
@@ -43,13 +44,19 @@ private:
     void createStatusBar();
     void createDockWindows();
 
+    void checkPaths();
+
+    QString m_javaPath;
+    QString m_platUmlPath;
+    bool m_hasValidPaths;
+
     QProcess *m_process;
     QMap<ImageFormat, QString> m_imageFormatNames;
     ImageFormat m_currentImageFormat;
     QTimer *m_autoRefreshTimer;
     bool m_needsRefresh;
 
-    QTextEdit *m_textEdit;
+    QTextEdit *m_editor;
     PreviewWidget *m_imageWidget;
 
     QToolBar *m_mainToolBar;
@@ -68,14 +75,13 @@ private:
 
     QMenu *m_settingsMenu;
     QAction *m_showAssistantAction;
-    QAction *m_showCodeAction;
-    QAction *m_showPreviewAction; // obsolete!
+    QAction *m_showEditorDockAction;
     QAction *m_showMainToolbarAction;
     QAction *m_showStatusBarAction;
     QAction *m_pngPreviewAction;
     QAction *m_svgPreviewAction;
     QAction *m_autoRefreshAction;
-    QAction *m_configureAction;
+    QAction *m_preferencesAction;
 
     QMenu *m_helpMenu;
     QAction *m_aboutAction;

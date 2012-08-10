@@ -1,12 +1,11 @@
 #include "mainwindow.h"
 #include "previewwidget.h"
+#include "preferencesdialog.h"
 
 #include <QtGui>
 
 namespace {
 const int STATUSBAR_TIMEOUT = 3000; // in miliseconds
-const QString PLANTUML_JAR = "/home/borco/local/bin/plantuml.jar";
-const QString JAVA_PATH = "/usr/bin/java";
 
 const QString SETTINGS_SECTION = "MainWindow";
 const QString SETTINGS_GEOMETRY = "geometry";
@@ -16,10 +15,15 @@ const QString SETTINGS_AUTOREFRESH_ENABLED = "autorefresh_enabled";
 const QString SETTINGS_AUTOREFRESH_TIMEOUT = "autorefresh_timeout";
 const int SETTINGS_AUTOREFRESH_TIMEOUT_DEFAULT = 5000; // in miliseconds
 const QString SETTINGS_IMAGE_FORMAT = "image_format";
+const QString SETTINGS_JAVA_PATH = "java";
+const QString SETTINGS_JAVA_PATH_DEFAULT = "/usr/bin/java";
+const QString SETTINGS_PLATUML_PATH = "plantuml";
+const QString SETTINGS_PLATUML_PATH_DEFAULT = "/usr/bin/plantuml";
 }
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
+    , m_hasValidPaths(false)
     , m_process(0)
     , m_currentImageFormat(SvgFormat)
     , m_needsRefresh(false)
@@ -55,7 +59,7 @@ MainWindow::~MainWindow()
 void MainWindow::newDocument()
 {
     QString text = "@startuml\n\nclass Foo\n\n@enduml";
-    m_textEdit->setPlainText(text);
+    m_editor->setPlainText(text);
     refresh();
 }
 
@@ -84,17 +88,21 @@ void MainWindow::refresh()
         return;
     }
 
-    QByteArray current_document = m_textEdit->toPlainText().toAscii();
-    m_needsRefresh = false;
+    if (!m_hasValidPaths) {
+        qDebug() << "please configure paths for plantuml and java. aborting...";
+        statusBar()->showMessage(tr("PlantUML or Java not found. Please set them correctly in the \"Preferences\" dialog!"));
+        return;
+    }
 
+    QByteArray current_document = m_editor->toPlainText().toAscii();
     if (current_document.isEmpty()) {
         qDebug() << "empty document. skipping...";
         return;
     }
+    m_needsRefresh = false;
 
     statusBar()->showMessage(tr("Refreshing..."));
 
-    QString program = JAVA_PATH;
     QStringList arguments;
 
     switch(m_currentImageFormat) {
@@ -107,12 +115,12 @@ void MainWindow::refresh()
     }
 
     arguments
-            << "-jar" << PLANTUML_JAR
+            << "-jar" << m_platUmlPath
             << QString("-t%1").arg(m_imageFormatNames[m_currentImageFormat])
             << "-pipe";
 
     m_process = new QProcess(this);
-    m_process->start(program, arguments);
+    m_process->start(m_javaPath, arguments);
     if (!m_process->waitForStarted()) {
         qDebug() << "refresh subprocess failed to start";
         return;
@@ -170,6 +178,23 @@ void MainWindow::onRefreshActionTriggered()
     refresh();
 }
 
+void MainWindow::onPreferencesActionTriggered()
+{
+    const int TIMEOUT_SCALE = 1000;
+    PreferencesDialog dialog(this);
+    dialog.setJavaPath(m_javaPath);
+    dialog.setPlantUmlPath(m_platUmlPath);
+    dialog.setAutoRefreshTimeout(m_autoRefreshTimer->interval() / TIMEOUT_SCALE);
+    dialog.exec();
+
+    if (dialog.result() == QDialog::Accepted) {
+        m_javaPath = dialog.javaPath();
+        m_platUmlPath = dialog.plantUmlPath();
+        m_autoRefreshTimer->setInterval(dialog.autoRefreshTimeout() * TIMEOUT_SCALE);
+        checkPaths();
+    }
+}
+
 void MainWindow::closeEvent(QCloseEvent *)
 {
     writeSettings();
@@ -180,6 +205,11 @@ void MainWindow::readSettings()
     QSettings settings;
 
     settings.beginGroup(SETTINGS_SECTION);
+
+    m_javaPath = settings.value(SETTINGS_JAVA_PATH, SETTINGS_JAVA_PATH_DEFAULT).toString();
+    m_platUmlPath = settings.value(SETTINGS_PLATUML_PATH, SETTINGS_PLATUML_PATH_DEFAULT).toString();
+    checkPaths();
+
     restoreGeometry(settings.value(SETTINGS_GEOMETRY).toByteArray());
     restoreState(settings.value(SETTINGS_WINDOW_STATE).toByteArray());
 
@@ -219,6 +249,8 @@ void MainWindow::writeSettings()
     settings.setValue(SETTINGS_AUTOREFRESH_ENABLED, m_autoRefreshAction->isChecked());
     settings.setValue(SETTINGS_IMAGE_FORMAT, m_imageFormatNames[m_currentImageFormat]);
     settings.setValue(SETTINGS_AUTOREFRESH_TIMEOUT, m_autoRefreshTimer->interval());
+    settings.setValue(SETTINGS_JAVA_PATH, m_javaPath);
+    settings.setValue(SETTINGS_PLATUML_PATH, m_platUmlPath);
     settings.endGroup();
 }
 
@@ -282,6 +314,9 @@ void MainWindow::createActions()
     m_showStatusBarAction = new QAction(tr("Show statusbar"), this);
     m_showStatusBarAction->setCheckable(true);
 
+    m_preferencesAction = new QAction(QIcon::fromTheme("preferences-other"), tr("Preferences"), this);
+    connect(m_preferencesAction, SIGNAL(triggered()), this, SLOT(onPreferencesActionTriggered()));
+
     // Help menu
     m_aboutAction = new QAction(QIcon::fromTheme("help-about"), tr("&About"), this);
     m_aboutAction->setStatusTip(tr("Show the application's About box"));
@@ -311,12 +346,14 @@ void MainWindow::createMenus()
     m_settingsMenu = menuBar()->addMenu(tr("&Settings"));
     m_settingsMenu->addAction(m_showMainToolbarAction);
     m_settingsMenu->addAction(m_showStatusBarAction);
-    m_settingsMenu->addAction(m_showPreviewAction);
+    m_settingsMenu->addAction(m_showEditorDockAction);
     m_settingsMenu->addSeparator();
     m_settingsMenu->addAction(m_pngPreviewAction);
     m_settingsMenu->addAction(m_svgPreviewAction);
     m_settingsMenu->addSeparator();
     m_settingsMenu->addAction(m_autoRefreshAction);
+    m_settingsMenu->addSeparator();
+    m_settingsMenu->addAction(m_preferencesAction);
 
     menuBar()->addSeparator();
 
@@ -334,7 +371,7 @@ void MainWindow::createToolBars()
     m_mainToolBar->addAction(m_saveDocumentAction);
     m_mainToolBar->addAction(m_saveAsDocumentAction);
     m_mainToolBar->addSeparator();
-    m_mainToolBar->addAction(m_showPreviewAction);
+    m_mainToolBar->addAction(m_showEditorDockAction);
     m_mainToolBar->addSeparator();
     m_mainToolBar->addAction(m_refreshAction);
 }
@@ -347,14 +384,20 @@ void MainWindow::createStatusBar()
 void MainWindow::createDockWindows()
 {
     QDockWidget *dock = new QDockWidget(tr("Text Editor"), this);
-    m_textEdit = new QTextEdit(dock);
-    connect(m_textEdit, SIGNAL(textChanged()), this, SLOT(onDocumentChanged()));
-    dock->setWidget(m_textEdit);
+    m_editor = new QTextEdit(dock);
+    connect(m_editor, SIGNAL(textChanged()), this, SLOT(onDocumentChanged()));
+    dock->setWidget(m_editor);
     dock->setObjectName("text_editor");
     addDockWidget(Qt::RightDockWidgetArea, dock);
 
-    m_showPreviewAction = dock->toggleViewAction();
-    m_showPreviewAction->setIconVisibleInMenu(false);
-    m_showPreviewAction->setStatusTip("Show or hide the document editor");
-    m_showPreviewAction->setIcon(QIcon::fromTheme("accessories-text-editor"));
+    m_showEditorDockAction = dock->toggleViewAction();
+    m_showEditorDockAction->setIconVisibleInMenu(false);
+    m_showEditorDockAction->setStatusTip("Show or hide the document editor");
+    m_showEditorDockAction->setIcon(QIcon::fromTheme("accessories-text-editor"));
+}
+
+void MainWindow::checkPaths()
+{
+    m_hasValidPaths = QFileInfo(m_javaPath).exists() &&
+            QFileInfo(m_platUmlPath).exists();
 }
