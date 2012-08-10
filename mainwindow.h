@@ -10,6 +10,7 @@ class QTextEdit;
 class QProcess;
 class PreviewWidget;
 class QTimer;
+class QLabel;
 
 class MainWindow : public QMainWindow
 {
@@ -48,6 +49,9 @@ private:
     void createDockWindows();
 
     void checkPaths();
+
+    QLabel *m_currentImageFormatLabel;
+    QLabel *m_autorefreshLabel;
 
     QString m_documentPath;
 

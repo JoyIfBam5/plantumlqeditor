@@ -7,6 +7,7 @@
 namespace {
 const int STATUSBAR_TIMEOUT = 3000; // in miliseconds
 const QString TITLE_FORMAT_STRING = "%1[*] - %2";
+const QString AUTOREFRESH_STATUS_LABEL = QObject::tr("Auto-refresh");
 
 const QString SETTINGS_SECTION = "MainWindow";
 const QString SETTINGS_GEOMETRY = "geometry";
@@ -42,6 +43,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_imageWidget = new PreviewWidget(this);
     setCentralWidget(m_imageWidget);
+
+    m_currentImageFormatLabel = new QLabel(this);
+    m_autorefreshLabel = new QLabel(this);
+    statusBar()->addPermanentWidget(m_autorefreshLabel);
+    statusBar()->addPermanentWidget(m_currentImageFormatLabel);
 
     createDockWindows();
     createActions();
@@ -165,6 +171,7 @@ void MainWindow::changeImageFormat()
     if (new_format != m_currentImageFormat) {
         m_currentImageFormat = new_format;
         m_needsRefresh = true;
+        m_currentImageFormatLabel->setText(m_imageFormatNames[m_currentImageFormat].toUpper());
         refresh();
     }
 }
@@ -174,8 +181,10 @@ void MainWindow::onAutoRefreshActionToggled(bool state)
     if (state) {
         refresh();
         m_autoRefreshTimer->start();
+        m_autorefreshLabel->setText(AUTOREFRESH_STATUS_LABEL);
     } else {
         m_autoRefreshTimer->stop();
+        m_autorefreshLabel->clear();
     }
 }
 
@@ -249,6 +258,7 @@ void MainWindow::readSettings()
     m_autoRefreshTimer->setInterval(settings.value(SETTINGS_AUTOREFRESH_TIMEOUT, SETTINGS_AUTOREFRESH_TIMEOUT_DEFAULT).toInt());
     if (autorefresh_enabled) {
         m_autoRefreshTimer->start();
+        m_autorefreshLabel->setText(AUTOREFRESH_STATUS_LABEL);
     }
 
     m_currentImageFormat = m_imageFormatNames.key(settings.value(SETTINGS_IMAGE_FORMAT, m_imageFormatNames[SvgFormat]).toString());
@@ -257,6 +267,7 @@ void MainWindow::readSettings()
     } else if (m_currentImageFormat == PngFormat) {
         m_pngPreviewAction->setChecked(true);
     }
+    m_currentImageFormatLabel->setText(m_imageFormatNames[m_currentImageFormat].toUpper());
 
     settings.endGroup();
 }
@@ -466,7 +477,7 @@ void MainWindow::createDockWindows()
 {
     QDockWidget *dock = new QDockWidget(tr("Text Editor"), this);
     m_editor = new QTextEdit(dock);
-    connect(m_editor, SIGNAL(textChanged()), this, SLOT(onEditorChanged()));
+    connect(m_editor->document(), SIGNAL(contentsChanged()), this, SLOT(onEditorChanged()));
     dock->setWidget(m_editor);
     dock->setObjectName("text_editor");
     addDockWidget(Qt::RightDockWidgetArea, dock);
