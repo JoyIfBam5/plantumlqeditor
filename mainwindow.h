@@ -9,6 +9,7 @@ class QMenu;
 class QTextEdit;
 class QProcess;
 class PreviewWidget;
+class QTimer;
 
 class MainWindow : public QMainWindow
 {
@@ -23,6 +24,7 @@ private slots:
     void refresh();
     void refreshFinished();
     void changeImageFormat();
+    void onAutoRefreshActionToggled(bool state);
 
 private:
     enum ImageFormat { SvgFormat, PngFormat };
@@ -42,6 +44,7 @@ private:
     QProcess *m_process;
     QMap<ImageFormat, QString> m_imageFormatNames;
     ImageFormat m_currentImageFormat;
+    QTimer *m_autoRefreshTimer;
 
     QTextEdit *m_textEdit;
     PreviewWidget *m_imageWidget;

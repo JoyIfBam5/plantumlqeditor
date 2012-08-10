@@ -4,7 +4,7 @@
 #include <QtGui>
 
 namespace {
-const int STATUS_BAR_TIMEOUT = 5000; // in miliseconds
+const int STATUSBAR_TIMEOUT = 3000; // in miliseconds
 const QString PLANTUML_JAR = "/home/borco/local/bin/plantuml.jar";
 const QString JAVA_PATH = "/usr/bin/java";
 
@@ -12,9 +12,10 @@ const QString SETTINGS_SECTION = "MainWindow";
 const QString SETTINGS_GEOMETRY = "geometry";
 const QString SETTINGS_WINDOW_STATE = "window_state";
 const QString SETTINGS_SHOW_STATUSBAR = "show_statusbar";
-const QString SETTINGS_AUTOREFRESH = "autorefresh";
+const QString SETTINGS_AUTOREFRESH_ENABLED = "autorefresh_enabled";
+const QString SETTINGS_AUTOREFRESH_TIMEOUT = "autorefresh_timeout";
+const int SETTINGS_AUTOREFRESH_TIMEOUT_DEFAULT = 5000; // in miliseconds
 const QString SETTINGS_IMAGE_FORMAT = "image_format";
-
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -22,6 +23,9 @@ MainWindow::MainWindow(QWidget *parent)
     , m_process(0)
     , m_currentImageFormat(SvgFormat)
 {
+    m_autoRefreshTimer = new QTimer(this);
+    connect(m_autoRefreshTimer, SIGNAL(timeout()), this, SLOT(refresh()));
+
     m_imageFormatNames[SvgFormat] = "svg";
     m_imageFormatNames[PngFormat] = "png";
 
@@ -75,6 +79,8 @@ void MainWindow::refresh()
         return;
     }
 
+    statusBar()->showMessage(tr("Refreshing..."));
+
     QString program = JAVA_PATH;
     QStringList arguments;
 
@@ -111,6 +117,7 @@ void MainWindow::refreshFinished()
     m_imageWidget->load(output);
     m_process->deleteLater();
     m_process = 0;
+    statusBar()->showMessage(tr("Refreshed"), STATUSBAR_TIMEOUT);
 }
 
 void MainWindow::changeImageFormat()
@@ -125,6 +132,15 @@ void MainWindow::changeImageFormat()
     if (new_format != m_currentImageFormat) {
         m_currentImageFormat = new_format;
         refresh();
+    }
+}
+
+void MainWindow::onAutoRefreshActionToggled(bool state)
+{
+    if (state) {
+        m_autoRefreshTimer->start();
+    } else {
+        m_autoRefreshTimer->stop();
     }
 }
 
@@ -149,7 +165,12 @@ void MainWindow::readSettings()
     statusBar()->setVisible(show_statusbar);
     connect(m_showStatusBarAction, SIGNAL(toggled(bool)), statusBar(), SLOT(setVisible(bool)));
 
-    m_autoRefreshAction->setChecked(settings.value(SETTINGS_AUTOREFRESH, false).toBool());
+    const bool autorefresh_enabled = settings.value(SETTINGS_AUTOREFRESH_ENABLED, false).toBool();
+    m_autoRefreshAction->setChecked(autorefresh_enabled);
+    m_autoRefreshTimer->setInterval(settings.value(SETTINGS_AUTOREFRESH_TIMEOUT, SETTINGS_AUTOREFRESH_TIMEOUT_DEFAULT).toInt());
+    if (autorefresh_enabled) {
+        m_autoRefreshTimer->start();
+    }
 
     m_currentImageFormat = m_imageFormatNames.key(settings.value(SETTINGS_IMAGE_FORMAT, m_imageFormatNames[SvgFormat]).toString());
     if (m_currentImageFormat == SvgFormat) {
@@ -169,8 +190,9 @@ void MainWindow::writeSettings()
     settings.setValue(SETTINGS_GEOMETRY, saveGeometry());
     settings.setValue(SETTINGS_WINDOW_STATE, saveState());
     settings.setValue(SETTINGS_SHOW_STATUSBAR, m_showStatusBarAction->isChecked());
-    settings.setValue(SETTINGS_AUTOREFRESH, m_autoRefreshAction->isChecked());
+    settings.setValue(SETTINGS_AUTOREFRESH_ENABLED, m_autoRefreshAction->isChecked());
     settings.setValue(SETTINGS_IMAGE_FORMAT, m_imageFormatNames[m_currentImageFormat]);
+    settings.setValue(SETTINGS_AUTOREFRESH_TIMEOUT, m_autoRefreshTimer->interval());
     settings.endGroup();
 }
 
@@ -220,11 +242,12 @@ void MainWindow::createActions()
 
     m_refreshAction = new QAction(QIcon::fromTheme("view-refresh"), tr("Refresh"), this);
     m_refreshAction->setShortcuts(QKeySequence::Refresh);
-    m_refreshAction->setStatusTip(tr("Call PlantUML to regenerate the UML preview"));
+    m_refreshAction->setStatusTip(tr("Call PlantUML to regenerate the UML image"));
     connect(m_refreshAction, SIGNAL(triggered()), this, SLOT(refresh()));
 
     m_autoRefreshAction = new QAction(tr("Auto-Refresh"), this);
     m_autoRefreshAction->setCheckable(true);
+    connect(m_autoRefreshAction, SIGNAL(toggled(bool)), this, SLOT(onAutoRefreshActionToggled(bool)));
 
     // Settings menu
     m_showMainToolbarAction = new QAction(tr("Show toolbar"), this);
@@ -292,7 +315,7 @@ void MainWindow::createToolBars()
 
 void MainWindow::createStatusBar()
 {
-    statusBar()->showMessage(tr("Ready"), STATUS_BAR_TIMEOUT);
+    statusBar()->showMessage(tr("Ready"), STATUSBAR_TIMEOUT);
 }
 
 void MainWindow::createDockWindows()
