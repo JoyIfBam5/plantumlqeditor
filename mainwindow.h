@@ -2,12 +2,12 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QMap>
 
 class QAction;
 class QMenu;
 class QTextEdit;
 class QProcess;
-
 class PreviewWidget;
 
 class MainWindow : public QMainWindow
@@ -22,8 +22,15 @@ private slots:
     void about();
     void refresh();
     void refreshFinished();
+    void changeImageFormat();
 
 private:
+    enum ImageFormat { SvgFormat, PngFormat };
+    void closeEvent(QCloseEvent *);
+
+    void readSettings();
+    void writeSettings();
+
     void newDocument();
 
     void createActions();
@@ -33,6 +40,8 @@ private:
     void createDockWindows();
 
     QProcess *m_process;
+    QMap<ImageFormat, QString> m_imageFormatNames;
+    ImageFormat m_currentImageFormat;
 
     QTextEdit *m_textEdit;
     PreviewWidget *m_preview;
@@ -59,7 +68,7 @@ private:
     QAction *m_showStatusBarAction;
     QAction *m_pngPreviewAction;
     QAction *m_svgPreviewAction;
-    QAction *m_previewAutoRefreshAction;
+    QAction *m_autoRefreshAction;
     QAction *m_configureAction;
 
     QMenu *m_helpMenu;

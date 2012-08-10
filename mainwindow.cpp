@@ -7,12 +7,24 @@ namespace {
 const int STATUS_BAR_TIMEOUT = 5000; // in miliseconds
 const QString PLANTUML_JAR = "/home/borco/local/bin/plantuml.jar";
 const QString JAVA_PATH = "/usr/bin/java";
+
+const QString SETTINGS_SECTION = "MainWindow";
+const QString SETTINGS_GEOMETRY = "geometry";
+const QString SETTINGS_WINDOW_STATE = "window_state";
+const QString SETTINGS_SHOW_STATUSBAR = "show_statusbar";
+const QString SETTINGS_AUTOREFRESH = "autorefresh";
+const QString SETTINGS_IMAGE_FORMAT = "image_format";
+
 }
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_process(0)
+    , m_currentImageFormat(SvgFormat)
 {
+    m_imageFormatNames[SvgFormat] = "svg";
+    m_imageFormatNames[PngFormat] = "png";
+
     m_textEdit = new QTextEdit;
     setCentralWidget(m_textEdit);
 
@@ -24,8 +36,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     setWindowTitle(tr("PlantUML Editor"));
 
-    newDocument();
     setUnifiedTitleAndToolBarOnMac(true);
+
+    readSettings();
+
+    newDocument();
 }
 
 MainWindow::~MainWindow()
@@ -36,6 +51,7 @@ void MainWindow::newDocument()
 {
     QString text = "@startuml\n\nclass Foo\n\n@enduml";
     m_textEdit->setPlainText(text);
+    refresh();
 }
 
 void MainWindow::about()
@@ -61,17 +77,20 @@ void MainWindow::refresh()
 
     QString program = JAVA_PATH;
     QStringList arguments;
-    QString output;
 
-    if (m_svgPreviewAction->isChecked()) {
-        output = "-tsvg";
+    switch(m_currentImageFormat) {
+    case SvgFormat:
         m_preview->setMode(PreviewWidget::SvgMode);
-    } else {
-        output = "-tpng";
+        break;
+    case PngFormat:
         m_preview->setMode(PreviewWidget::PngMode);
+        break;
     }
 
-    arguments << "-jar" << PLANTUML_JAR << output << "-pipe";
+    arguments
+            << "-jar" << PLANTUML_JAR
+            << QString("-t%1").arg(m_imageFormatNames[m_currentImageFormat])
+            << "-pipe";
 
     m_process = new QProcess(this);
     m_process->start(program, arguments);
@@ -92,6 +111,67 @@ void MainWindow::refreshFinished()
     m_preview->load(output);
     m_process->deleteLater();
     m_process = 0;
+}
+
+void MainWindow::changeImageFormat()
+{
+    ImageFormat new_format;
+    if (m_pngPreviewAction->isChecked()) {
+        new_format = PngFormat;
+    } else {
+        new_format = SvgFormat;
+    }
+
+    if (new_format != m_currentImageFormat) {
+        m_currentImageFormat = new_format;
+        refresh();
+    }
+}
+
+void MainWindow::closeEvent(QCloseEvent *)
+{
+    writeSettings();
+}
+
+void MainWindow::readSettings()
+{
+    QSettings settings;
+
+    settings.beginGroup(SETTINGS_SECTION);
+    restoreGeometry(settings.value(SETTINGS_GEOMETRY).toByteArray());
+    restoreState(settings.value(SETTINGS_WINDOW_STATE).toByteArray());
+
+    m_showMainToolbarAction->setChecked(m_mainToolBar->isVisibleTo(this)); // NOTE: works even if the current window is not yet displayed
+    connect(m_showMainToolbarAction, SIGNAL(toggled(bool)), m_mainToolBar, SLOT(setVisible(bool)));
+
+    const bool show_statusbar = settings.value(SETTINGS_SHOW_STATUSBAR, true).toBool();
+    m_showStatusBarAction->setChecked(show_statusbar);
+    statusBar()->setVisible(show_statusbar);
+    connect(m_showStatusBarAction, SIGNAL(toggled(bool)), statusBar(), SLOT(setVisible(bool)));
+
+    m_autoRefreshAction->setChecked(settings.value(SETTINGS_AUTOREFRESH, false).toBool());
+
+    m_currentImageFormat = m_imageFormatNames.key(settings.value(SETTINGS_IMAGE_FORMAT, m_imageFormatNames[SvgFormat]).toString());
+    if (m_currentImageFormat == SvgFormat) {
+        m_svgPreviewAction->setChecked(true);
+    } else if (m_currentImageFormat == PngFormat) {
+        m_pngPreviewAction->setChecked(true);
+    }
+
+    settings.endGroup();
+}
+
+void MainWindow::writeSettings()
+{
+    QSettings settings;
+
+    settings.beginGroup(SETTINGS_SECTION);
+    settings.setValue(SETTINGS_GEOMETRY, saveGeometry());
+    settings.setValue(SETTINGS_WINDOW_STATE, saveState());
+    settings.setValue(SETTINGS_SHOW_STATUSBAR, m_showStatusBarAction->isChecked());
+    settings.setValue(SETTINGS_AUTOREFRESH, m_autoRefreshAction->isChecked());
+    settings.setValue(SETTINGS_IMAGE_FORMAT, m_imageFormatNames[m_currentImageFormat]);
+    settings.endGroup();
 }
 
 void MainWindow::createActions()
@@ -125,10 +205,12 @@ void MainWindow::createActions()
     m_pngPreviewAction = new QAction(tr("PNG"), this);
     m_pngPreviewAction->setCheckable(true);
     m_pngPreviewAction->setStatusTip(tr("Set PlantUML to produce PNG output"));
+    connect(m_pngPreviewAction, SIGNAL(toggled(bool)), this, SLOT(changeImageFormat()));
 
     m_svgPreviewAction = new QAction(tr("SVG"), this);
     m_svgPreviewAction->setCheckable(true);
     m_svgPreviewAction->setStatusTip(tr("Set PlantUML to produce SVG output"));
+    connect(m_svgPreviewAction, SIGNAL(toggled(bool)), this, SLOT(changeImageFormat()));
 
     QActionGroup* output_action_group = new QActionGroup(this);
     output_action_group->setExclusive(true);
@@ -141,23 +223,15 @@ void MainWindow::createActions()
     m_refreshAction->setStatusTip(tr("Call PlantUML to regenerate the UML preview"));
     connect(m_refreshAction, SIGNAL(triggered()), this, SLOT(refresh()));
 
-    bool auto_refresh_is_checked = false; // TODO: load from INI file
-    m_previewAutoRefreshAction = new QAction(tr("Auto-Refresh"), this);
-    m_previewAutoRefreshAction->setCheckable(true);
-    m_previewAutoRefreshAction->setChecked(auto_refresh_is_checked);
+    m_autoRefreshAction = new QAction(tr("Auto-Refresh"), this);
+    m_autoRefreshAction->setCheckable(true);
 
     // Settings menu
-    const bool main_toolbar_is_visible = true; // TODO: load from INI file
     m_showMainToolbarAction = new QAction(tr("Show toolbar"), this);
     m_showMainToolbarAction->setCheckable(true);
-    m_showMainToolbarAction->setChecked(main_toolbar_is_visible);
 
-    const bool statusbar_is_visible = true; // TODO: load from INI file
     m_showStatusBarAction = new QAction(tr("Show statusbar"), this);
     m_showStatusBarAction->setCheckable(true);
-    m_showStatusBarAction->setChecked(statusbar_is_visible);
-    statusBar()->setVisible(m_showStatusBarAction->isChecked());
-    connect(m_showStatusBarAction, SIGNAL(toggled(bool)), statusBar(), SLOT(setVisible(bool)));
 
     // Help menu
     m_aboutAction = new QAction(QIcon::fromTheme("help-about"), tr("&About"), this);
@@ -193,7 +267,7 @@ void MainWindow::createMenus()
     m_settingsMenu->addAction(m_pngPreviewAction);
     m_settingsMenu->addAction(m_svgPreviewAction);
     m_settingsMenu->addSeparator();
-    m_settingsMenu->addAction(m_previewAutoRefreshAction);
+    m_settingsMenu->addAction(m_autoRefreshAction);
 
     menuBar()->addSeparator();
 
@@ -204,7 +278,8 @@ void MainWindow::createMenus()
 
 void MainWindow::createToolBars()
 {
-    m_mainToolBar = addToolBar(tr("File"));
+    m_mainToolBar = addToolBar(tr("MainToolbar"));
+    m_mainToolBar->setObjectName("main_toolbar");
     m_mainToolBar->addAction(m_newDocumentAction);
     m_mainToolBar->addAction(m_openDocumentAction);
     m_mainToolBar->addAction(m_saveDocumentAction);
@@ -213,9 +288,6 @@ void MainWindow::createToolBars()
     m_mainToolBar->addAction(m_showPreviewAction);
     m_mainToolBar->addSeparator();
     m_mainToolBar->addAction(m_refreshAction);
-
-    m_mainToolBar->setVisible(m_showMainToolbarAction->isChecked());
-    connect(m_showMainToolbarAction, SIGNAL(toggled(bool)), m_mainToolBar, SLOT(setVisible(bool)));
 }
 
 void MainWindow::createStatusBar()
@@ -228,6 +300,7 @@ void MainWindow::createDockWindows()
     QDockWidget *dock = new QDockWidget(tr("UML diagram"), this);
     m_preview = new PreviewWidget(dock);
     dock->setWidget(m_preview);
+    dock->setObjectName("uml_diagram");
     addDockWidget(Qt::RightDockWidgetArea, dock);
 
     m_showPreviewAction = dock->toggleViewAction();
