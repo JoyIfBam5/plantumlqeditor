@@ -105,6 +105,22 @@ void MainWindow::newDocument()
                    );
     setWindowModified(false);
     refresh();
+
+    enableUndoRedoActions();
+}
+
+void MainWindow::undo()
+{
+    QTextDocument *document = m_editor->document();
+    document->undo();
+    enableUndoRedoActions();
+}
+
+void MainWindow::redo()
+{
+    QTextDocument *document = m_editor->document();
+    document->redo();
+    enableUndoRedoActions();
 }
 
 void MainWindow::about()
@@ -219,6 +235,8 @@ void MainWindow::onEditorChanged()
 {
     m_needsRefresh = true;
     setWindowModified(true);
+
+    enableUndoRedoActions();
 }
 
 void MainWindow::onRefreshActionTriggered()
@@ -493,9 +511,11 @@ void MainWindow::createActions()
     // Edit menu
     m_undoAction = new QAction(QIcon::fromTheme("edit-undo"), tr("&Undo"), this);
     m_undoAction->setShortcuts(QKeySequence::Undo);
+    connect(m_undoAction, SIGNAL(triggered()), this, SLOT(undo()));
 
     m_redoAction = new QAction(QIcon::fromTheme("edit-redo"), tr("&Redo"), this);
     m_redoAction->setShortcuts(QKeySequence::Redo);
+    connect(m_redoAction, SIGNAL(triggered()), this, SLOT(redo()));
 
     // Tools menu
     m_pngPreviewAction = new QAction(tr("PNG"), this);
@@ -594,6 +614,9 @@ void MainWindow::createToolBars()
     m_mainToolBar->addSeparator();
     m_mainToolBar->addAction(m_showEditorDockAction);
     m_mainToolBar->addSeparator();
+    m_mainToolBar->addAction(m_undoAction);
+    m_mainToolBar->addAction(m_redoAction);
+    m_mainToolBar->addSeparator();
     m_mainToolBar->addAction(m_refreshAction);
 }
 
@@ -615,6 +638,13 @@ void MainWindow::createDockWindows()
     m_showEditorDockAction->setIconVisibleInMenu(false);
     m_showEditorDockAction->setStatusTip("Show or hide the document editor");
     m_showEditorDockAction->setIcon(QIcon::fromTheme("accessories-text-editor"));
+}
+
+void MainWindow::enableUndoRedoActions()
+{
+    QTextDocument *document = m_editor->document();
+    m_undoAction->setEnabled(document->isUndoAvailable());
+    m_redoAction->setEnabled(document->isRedoAvailable());
 }
 
 void MainWindow::checkPaths()

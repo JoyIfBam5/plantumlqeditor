@@ -27,6 +27,8 @@ private slots:
     void refreshFinished();
     void changeImageFormat();
     void newDocument();
+    void undo();
+    void redo();
 
     void onAutoRefreshActionToggled(bool state);
     void onEditorChanged();
@@ -55,6 +57,7 @@ private:
     void createToolBars();
     void createStatusBar();
     void createDockWindows();
+    void enableUndoRedoActions();
 
     void checkPaths();
     void updateRecentDocumentsList(const QString& path);
