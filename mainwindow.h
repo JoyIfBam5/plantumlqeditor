@@ -12,6 +12,7 @@ class PreviewWidget;
 class QTimer;
 class QLabel;
 class QSignalMapper;
+class QToolBox;
 
 class MainWindow : public QMainWindow
 {
@@ -87,6 +88,8 @@ private:
     QTextEdit *m_editor;
     PreviewWidget *m_imageWidget;
 
+    QToolBox *m_assitantToolBox;
+
     QToolBar *m_mainToolBar;
 
     QMenu *m_fileMenu;
@@ -107,6 +110,7 @@ private:
     QAction *m_refreshAction;
 
     QMenu *m_settingsMenu;
+    QAction *m_showAssistantDockAction;
     QAction *m_showEditorDockAction;
     QAction *m_showMainToolbarAction;
     QAction *m_showStatusBarAction;
