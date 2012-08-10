@@ -66,7 +66,7 @@ void MainWindow::newDocument()
     QString text = "@startuml\n\nclass Foo\n\n@enduml";
     m_editor->setPlainText(text);
     setWindowTitle(TITLE_FORMAT_STRING
-                   .arg(tr("New File"))
+                   .arg(tr("Untitled"))
                    .arg(qApp->applicationName())
                    );
     setWindowModified(false);
@@ -210,12 +210,12 @@ void MainWindow::onPreferencesActionTriggered()
 
 void MainWindow::onSaveActionTriggered()
 {
-    save(m_documentPath);
+    saveDocument(m_documentPath);
 }
 
 void MainWindow::onSaveAsActionTriggered()
 {
-    save("");
+    saveDocument("");
 }
 
 void MainWindow::closeEvent(QCloseEvent *)
@@ -277,7 +277,32 @@ void MainWindow::writeSettings()
     settings.endGroup();
 }
 
-void MainWindow::save(const QString &name)
+void MainWindow::openDocument()
+{
+    QString name = QFileDialog::getOpenFileName(this,
+                                                tr("Select a file to open"),
+                                                QString(),
+                                                "PlantUML (*.plantuml);; All Files (*.*)"
+                                                );
+
+    if (!name.isEmpty()) {
+        QFile file(name);
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            return;
+        }
+        m_editor->setPlainText(file.readAll());
+        setWindowModified(false);
+        m_documentPath = name;
+        setWindowTitle(TITLE_FORMAT_STRING
+                       .arg(QFileInfo(name).fileName())
+                       .arg(qApp->applicationName())
+                       );
+        m_needsRefresh = true;
+        refresh();
+    }
+}
+
+void MainWindow::saveDocument(const QString &name)
 {
     qDebug() << "save: called with:" << name;
     QString tmp_name = name;
@@ -311,9 +336,11 @@ void MainWindow::createActions()
     // File menu
     m_newDocumentAction = new QAction(QIcon::fromTheme("document-new"), tr("&New"), this);
     m_newDocumentAction->setShortcut(QKeySequence::New);
+    connect(m_newDocumentAction, SIGNAL(triggered()), this, SLOT(newDocument()));
 
     m_openDocumentAction = new QAction(QIcon::fromTheme("document-open"), tr("&Open"), this);
     m_openDocumentAction->setShortcuts(QKeySequence::Open);
+    connect(m_openDocumentAction, SIGNAL(triggered()), this, SLOT(openDocument()));
 
     m_saveDocumentAction = new QAction(QIcon::fromTheme("document-save"), tr("&Save"), this);
     m_saveDocumentAction->setShortcuts(QKeySequence::Save);

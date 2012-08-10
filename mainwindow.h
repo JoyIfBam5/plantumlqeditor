@@ -30,6 +30,8 @@ private slots:
     void onPreferencesActionTriggered();
     void onSaveActionTriggered();
     void onSaveAsActionTriggered();
+    void newDocument();
+    void openDocument();
 
 private:
     enum ImageFormat { SvgFormat, PngFormat };
@@ -37,9 +39,7 @@ private:
 
     void readSettings();
     void writeSettings();
-    void save(const QString& name);
-
-    void newDocument();
+    void saveDocument(const QString& name);
 
     void createActions();
     void createMenus();
