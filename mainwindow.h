@@ -11,6 +11,7 @@ class QProcess;
 class PreviewWidget;
 class QTimer;
 class QLabel;
+class QSignalMapper;
 
 class MainWindow : public QMainWindow
 {
@@ -26,17 +27,18 @@ private slots:
     void refreshFinished();
     void changeImageFormat();
     void newDocument();
-    void openDocument();
 
     void onAutoRefreshActionToggled(bool state);
     void onEditorChanged();
     void onRefreshActionTriggered();
     void onPreferencesActionTriggered();
+    void onOpenDocumentActionTriggered();
     void onSaveActionTriggered();
     void onSaveAsActionTriggered();
     void onExportImageActionTriggered();
     void onExportAsImageActionTriggered();
     void onClearRecentDocumentsActionTriggered();
+    void onRecentDocumentsActionTriggered(const QString& path);
 
 private:
     enum ImageFormat { SvgFormat, PngFormat };
@@ -44,6 +46,7 @@ private:
 
     void readSettings();
     void writeSettings();
+    void openDocument(const QString& path);
     void saveDocument(const QString& name);
     void exportImage(const QString& name);
 
@@ -66,6 +69,7 @@ private:
     QByteArray m_cachedImage;
 
     QStringList m_recentDocumentsList;
+    QSignalMapper *m_recentDocumentsSignalMapper;
 
     QString m_javaPath;
     QString m_platUmlPath;

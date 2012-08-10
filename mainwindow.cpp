@@ -5,6 +5,7 @@
 #include <QtGui>
 
 namespace {
+const int MAX_RECENT_DOCUMENT_SIZE = 10;
 const int STATUSBAR_TIMEOUT = 3000; // in miliseconds
 const QString TITLE_FORMAT_STRING = "%1[*] - %2";
 const QString EXPORT_TO_MENU_FORMAT_STRING = QObject::tr("Export to %1");
@@ -39,6 +40,10 @@ MainWindow::MainWindow(QWidget *parent)
                    .arg("")
                    .arg(qApp->applicationName())
                    );
+
+    m_recentDocumentsSignalMapper = new QSignalMapper(this);
+    connect(m_recentDocumentsSignalMapper, SIGNAL(mapped(QString)),
+            this, SLOT(onRecentDocumentsActionTriggered(QString)));
 
     m_autoRefreshTimer = new QTimer(this);
     connect(m_autoRefreshTimer, SIGNAL(timeout()), this, SLOT(refresh()));
@@ -239,6 +244,11 @@ void MainWindow::onPreferencesActionTriggered()
     }
 }
 
+void MainWindow::onOpenDocumentActionTriggered()
+{
+    openDocument("");
+}
+
 void MainWindow::onSaveActionTriggered()
 {
     saveDocument(m_documentPath);
@@ -263,6 +273,11 @@ void MainWindow::onClearRecentDocumentsActionTriggered()
 {
     m_recentDocumentsList.clear();
     updateRecentDocumentsMenu();
+}
+
+void MainWindow::onRecentDocumentsActionTriggered(const QString &path)
+{
+    openDocument(path);
 }
 
 void MainWindow::closeEvent(QCloseEvent *)
@@ -342,30 +357,35 @@ void MainWindow::writeSettings()
     settings.endArray();
 }
 
-void MainWindow::openDocument()
+void MainWindow::openDocument(const QString &name)
 {
-    QString name = QFileDialog::getOpenFileName(this,
+    QString tmp_name = name;
+
+    if (tmp_name.isEmpty()) {
+        tmp_name = QFileDialog::getOpenFileName(this,
                                                 tr("Select a file to open"),
                                                 QString(),
                                                 "PlantUML (*.plantuml);; All Files (*.*)"
                                                 );
-
-    if (!name.isEmpty()) {
-        QFile file(name);
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        if (tmp_name.isEmpty()) {
             return;
         }
-        m_editor->setPlainText(file.readAll());
-        setWindowModified(false);
-        m_documentPath = name;
-        setWindowTitle(TITLE_FORMAT_STRING
-                       .arg(QFileInfo(name).fileName())
-                       .arg(qApp->applicationName())
-                       );
-        m_needsRefresh = true;
-        refresh();
-        updateRecentDocumentsList(name);
     }
+
+    QFile file(tmp_name);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return;
+    }
+    m_editor->setPlainText(file.readAll());
+    setWindowModified(false);
+    m_documentPath = tmp_name;
+    setWindowTitle(TITLE_FORMAT_STRING
+                   .arg(QFileInfo(tmp_name).fileName())
+                   .arg(qApp->applicationName())
+                   );
+    m_needsRefresh = true;
+    refresh();
+    updateRecentDocumentsList(tmp_name);
 }
 
 void MainWindow::saveDocument(const QString &name)
@@ -443,7 +463,7 @@ void MainWindow::createActions()
 
     m_openDocumentAction = new QAction(QIcon::fromTheme("document-open"), tr("&Open"), this);
     m_openDocumentAction->setShortcuts(QKeySequence::Open);
-    connect(m_openDocumentAction, SIGNAL(triggered()), this, SLOT(openDocument()));
+    connect(m_openDocumentAction, SIGNAL(triggered()), this, SLOT(onOpenDocumentActionTriggered()));
 
     m_saveDocumentAction = new QAction(QIcon::fromTheme("document-save"), tr("&Save"), this);
     m_saveDocumentAction->setShortcuts(QKeySequence::Save);
@@ -617,22 +637,28 @@ void MainWindow::updateRecentDocumentsList(const QString &path)
             }
 
             // keep at most MAX_RECENT_DOCUMENT_SIZE
-            const int MAX_RECENT_DOCUMENT_SIZE = 2;
             while (m_recentDocumentsList.size() > MAX_RECENT_DOCUMENT_SIZE) {
                 m_recentDocumentsList = m_recentDocumentsList.mid(0, MAX_RECENT_DOCUMENT_SIZE);
             }
         }
+        updateRecentDocumentsMenu();
     }
-
-    updateRecentDocumentsMenu();
 }
 
 void MainWindow::updateRecentDocumentsMenu()
 {
+    foreach (QAction* action, m_recentDocumentsMenu->actions()) {
+        if (action != m_clearRecentDocumentsAction) {
+            action->deleteLater();
+        }
+    }
     m_recentDocumentsMenu->clear();
+
     foreach(const QString& path, m_recentDocumentsList) {
         QAction *action = new QAction(path, this);
         m_recentDocumentsMenu->addAction(action);
+        connect(action, SIGNAL(triggered()), m_recentDocumentsSignalMapper, SLOT(map()));
+        m_recentDocumentsSignalMapper->setMapping(action, path);
     }
     if (m_recentDocumentsList.size()) {
         m_recentDocumentsMenu->addSeparator();
