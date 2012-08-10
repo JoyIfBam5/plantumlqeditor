@@ -11,7 +11,7 @@ const QString EXPORT_TO_MENU_FORMAT_STRING = QObject::tr("Export to %1");
 const QString EXPORT_TO_LABEL_FORMAT_STRING = QObject::tr("Export to: %1");
 const QString AUTOREFRESH_STATUS_LABEL = QObject::tr("Auto-refresh");
 
-const QString SETTINGS_SECTION = "MainWindow";
+const QString SETTINGS_MAIN_SECTION = "MainWindow";
 const QString SETTINGS_GEOMETRY = "geometry";
 const QString SETTINGS_WINDOW_STATE = "window_state";
 const QString SETTINGS_SHOW_STATUSBAR = "show_statusbar";
@@ -23,6 +23,9 @@ const QString SETTINGS_JAVA_PATH = "java";
 const QString SETTINGS_JAVA_PATH_DEFAULT = "/usr/bin/java";
 const QString SETTINGS_PLATUML_PATH = "plantuml";
 const QString SETTINGS_PLATUML_PATH_DEFAULT = "/usr/bin/plantuml";
+
+const QString SETTINGS_RECENT_DOCUMENTS_SECTION = "recent_documents";
+const QString SETTINGS_RECENT_DOCUMENTS_DOCUMENT = "document";
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -256,6 +259,12 @@ void MainWindow::onExportAsImageActionTriggered()
     exportImage("");
 }
 
+void MainWindow::onClearRecentDocumentsActionTriggered()
+{
+    m_recentDocumentsList.clear();
+    updateRecentDocumentsMenu();
+}
+
 void MainWindow::closeEvent(QCloseEvent *)
 {
     writeSettings();
@@ -265,7 +274,7 @@ void MainWindow::readSettings()
 {
     QSettings settings;
 
-    settings.beginGroup(SETTINGS_SECTION);
+    settings.beginGroup(SETTINGS_MAIN_SECTION);
 
     m_javaPath = settings.value(SETTINGS_JAVA_PATH, SETTINGS_JAVA_PATH_DEFAULT).toString();
     m_platUmlPath = settings.value(SETTINGS_PLATUML_PATH, SETTINGS_PLATUML_PATH_DEFAULT).toString();
@@ -299,13 +308,21 @@ void MainWindow::readSettings()
     m_currentImageFormatLabel->setText(m_imageFormatNames[m_currentImageFormat].toUpper());
 
     settings.endGroup();
+
+    int size = settings.beginReadArray(SETTINGS_RECENT_DOCUMENTS_SECTION);
+    for (int index = 0; index < size; ++index) {
+        settings.setArrayIndex(index);
+        m_recentDocumentsList.append(settings.value(SETTINGS_RECENT_DOCUMENTS_DOCUMENT).toString());
+    }
+    settings.endArray();
+    updateRecentDocumentsMenu();
 }
 
 void MainWindow::writeSettings()
 {
     QSettings settings;
 
-    settings.beginGroup(SETTINGS_SECTION);
+    settings.beginGroup(SETTINGS_MAIN_SECTION);
     settings.setValue(SETTINGS_GEOMETRY, saveGeometry());
     settings.setValue(SETTINGS_WINDOW_STATE, saveState());
     settings.setValue(SETTINGS_SHOW_STATUSBAR, m_showStatusBarAction->isChecked());
@@ -315,6 +332,14 @@ void MainWindow::writeSettings()
     settings.setValue(SETTINGS_JAVA_PATH, m_javaPath);
     settings.setValue(SETTINGS_PLATUML_PATH, m_platUmlPath);
     settings.endGroup();
+
+    settings.remove(SETTINGS_RECENT_DOCUMENTS_SECTION);
+    settings.beginWriteArray(SETTINGS_RECENT_DOCUMENTS_SECTION);
+    for(int index = 0; index < m_recentDocumentsList.size(); ++index) {
+        settings.setArrayIndex(index);
+        settings.setValue(SETTINGS_RECENT_DOCUMENTS_DOCUMENT, m_recentDocumentsList.at(index));
+    }
+    settings.endArray();
 }
 
 void MainWindow::openDocument()
@@ -339,6 +364,7 @@ void MainWindow::openDocument()
                        );
         m_needsRefresh = true;
         refresh();
+        updateRecentDocumentsList(name);
     }
 }
 
@@ -370,6 +396,7 @@ void MainWindow::saveDocument(const QString &name)
                    .arg(qApp->applicationName())
                    );
     statusBar()->showMessage(tr("Document save in %1").arg(tmp_name), STATUSBAR_TIMEOUT);
+    updateRecentDocumentsList(tmp_name);
 }
 
 void MainWindow::exportImage(const QString &name)
@@ -439,6 +466,10 @@ void MainWindow::createActions()
     m_quitAction->setStatusTip(tr("Quit the application"));
     connect(m_quitAction, SIGNAL(triggered()), this, SLOT(close()));
 
+    // Recent Documents menu
+    m_clearRecentDocumentsAction = new QAction(tr("Clear Menu"), this);
+    connect(m_clearRecentDocumentsAction, SIGNAL(triggered()), this, SLOT(onClearRecentDocumentsActionTriggered()));
+
     // Edit menu
     m_undoAction = new QAction(QIcon::fromTheme("edit-undo"), tr("&Undo"), this);
     m_undoAction->setShortcuts(QKeySequence::Undo);
@@ -499,6 +530,8 @@ void MainWindow::createMenus()
     m_fileMenu->addAction(m_openDocumentAction);
     m_fileMenu->addAction(m_saveDocumentAction);
     m_fileMenu->addAction(m_saveAsDocumentAction);
+    m_fileMenu->addSeparator();
+    m_recentDocumentsMenu = m_fileMenu->addMenu(tr("Recent Documents"));
     m_fileMenu->addSeparator();
     m_fileMenu->addAction(m_exportImageAction);
     m_fileMenu->addAction(m_exportAsImageAction);
@@ -568,4 +601,41 @@ void MainWindow::checkPaths()
 {
     m_hasValidPaths = QFileInfo(m_javaPath).exists() &&
             QFileInfo(m_platUmlPath).exists();
+}
+
+void MainWindow::updateRecentDocumentsList(const QString &path)
+{
+    if (!path.isEmpty()) {
+        if (m_recentDocumentsList.size() == 0 || path != m_recentDocumentsList[0]) {
+            m_recentDocumentsList.insert(0, path);
+
+            // remove duplicates
+            int index = m_recentDocumentsList.lastIndexOf(path);
+            while (index > 0) {
+                m_recentDocumentsList.removeAt(index);
+                index = m_recentDocumentsList.lastIndexOf(path);
+            }
+
+            // keep at most MAX_RECENT_DOCUMENT_SIZE
+            const int MAX_RECENT_DOCUMENT_SIZE = 2;
+            while (m_recentDocumentsList.size() > MAX_RECENT_DOCUMENT_SIZE) {
+                m_recentDocumentsList = m_recentDocumentsList.mid(0, MAX_RECENT_DOCUMENT_SIZE);
+            }
+        }
+    }
+
+    updateRecentDocumentsMenu();
+}
+
+void MainWindow::updateRecentDocumentsMenu()
+{
+    m_recentDocumentsMenu->clear();
+    foreach(const QString& path, m_recentDocumentsList) {
+        QAction *action = new QAction(path, this);
+        m_recentDocumentsMenu->addAction(action);
+    }
+    if (m_recentDocumentsList.size()) {
+        m_recentDocumentsMenu->addSeparator();
+    }
+    m_recentDocumentsMenu->addAction(m_clearRecentDocumentsAction);
 }

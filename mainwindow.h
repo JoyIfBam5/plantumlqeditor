@@ -25,6 +25,9 @@ private slots:
     void refresh();
     void refreshFinished();
     void changeImageFormat();
+    void newDocument();
+    void openDocument();
+
     void onAutoRefreshActionToggled(bool state);
     void onEditorChanged();
     void onRefreshActionTriggered();
@@ -33,8 +36,7 @@ private slots:
     void onSaveAsActionTriggered();
     void onExportImageActionTriggered();
     void onExportAsImageActionTriggered();
-    void newDocument();
-    void openDocument();
+    void onClearRecentDocumentsActionTriggered();
 
 private:
     enum ImageFormat { SvgFormat, PngFormat };
@@ -52,6 +54,8 @@ private:
     void createDockWindows();
 
     void checkPaths();
+    void updateRecentDocumentsList(const QString& path);
+    void updateRecentDocumentsMenu();
 
     QLabel *m_currentImageFormatLabel;
     QLabel *m_autorefreshLabel;
@@ -60,6 +64,8 @@ private:
     QString m_documentPath;
     QString m_exportPath;
     QByteArray m_cachedImage;
+
+    QStringList m_recentDocumentsList;
 
     QString m_javaPath;
     QString m_platUmlPath;
@@ -84,6 +90,9 @@ private:
     QAction *m_exportImageAction;
     QAction *m_exportAsImageAction;
     QAction *m_quitAction;
+
+    QMenu *m_recentDocumentsMenu;
+    QAction *m_clearRecentDocumentsAction;
 
     QMenu *m_editMenu;
     QAction *m_undoAction;
