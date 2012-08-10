@@ -25,6 +25,7 @@ private slots:
     void refreshFinished();
     void changeImageFormat();
     void onAutoRefreshActionToggled(bool state);
+    void onDocumentChanged();
 
 private:
     enum ImageFormat { SvgFormat, PngFormat };
@@ -45,6 +46,7 @@ private:
     QMap<ImageFormat, QString> m_imageFormatNames;
     ImageFormat m_currentImageFormat;
     QTimer *m_autoRefreshTimer;
+    bool m_needsRefresh;
 
     QTextEdit *m_textEdit;
     PreviewWidget *m_imageWidget;

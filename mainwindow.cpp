@@ -22,6 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_process(0)
     , m_currentImageFormat(SvgFormat)
+    , m_needsRefresh(false)
 {
     m_autoRefreshTimer = new QTimer(this);
     connect(m_autoRefreshTimer, SIGNAL(timeout()), this, SLOT(refresh()));
@@ -79,6 +80,18 @@ void MainWindow::refresh()
         return;
     }
 
+    if (!m_needsRefresh) {
+        return;
+    }
+
+    QByteArray current_document = m_textEdit->toPlainText().toAscii();
+    m_needsRefresh = false;
+
+    if (current_document.isEmpty()) {
+        qDebug() << "empty document. skipping...";
+        return;
+    }
+
     statusBar()->showMessage(tr("Refreshing..."));
 
     QString program = JAVA_PATH;
@@ -107,7 +120,7 @@ void MainWindow::refresh()
 
     connect(m_process, SIGNAL(finished(int)), this, SLOT(refreshFinished()));
 
-    m_process->write(m_textEdit->toPlainText().toAscii());
+    m_process->write(current_document);
     m_process->closeWriteChannel();
 }
 
@@ -131,6 +144,7 @@ void MainWindow::changeImageFormat()
 
     if (new_format != m_currentImageFormat) {
         m_currentImageFormat = new_format;
+        m_needsRefresh = true;
         refresh();
     }
 }
@@ -138,10 +152,16 @@ void MainWindow::changeImageFormat()
 void MainWindow::onAutoRefreshActionToggled(bool state)
 {
     if (state) {
+        refresh();
         m_autoRefreshTimer->start();
     } else {
         m_autoRefreshTimer->stop();
     }
+}
+
+void MainWindow::onDocumentChanged()
+{
+    m_needsRefresh = true;
 }
 
 void MainWindow::closeEvent(QCloseEvent *)
@@ -322,6 +342,7 @@ void MainWindow::createDockWindows()
 {
     QDockWidget *dock = new QDockWidget(tr("Text Editor"), this);
     m_textEdit = new QTextEdit(dock);
+    connect(m_textEdit, SIGNAL(textChanged()), this, SLOT(onDocumentChanged()));
     dock->setWidget(m_textEdit);
     dock->setObjectName("text_editor");
     addDockWidget(Qt::RightDockWidgetArea, dock);
