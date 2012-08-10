@@ -55,6 +55,7 @@ private:
 
     QLabel *m_currentImageFormatLabel;
     QLabel *m_autorefreshLabel;
+    QLabel *m_exportPathLabel;
 
     QString m_documentPath;
     QString m_exportPath;

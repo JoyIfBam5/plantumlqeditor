@@ -7,7 +7,8 @@
 namespace {
 const int STATUSBAR_TIMEOUT = 3000; // in miliseconds
 const QString TITLE_FORMAT_STRING = "%1[*] - %2";
-const QString EXPORT_IMAGE_TO_FORMAT_STRING = QObject::tr("Export to %1");
+const QString EXPORT_TO_MENU_FORMAT_STRING = QObject::tr("Export to %1");
+const QString EXPORT_TO_LABEL_FORMAT_STRING = QObject::tr("Export to: %1");
 const QString AUTOREFRESH_STATUS_LABEL = QObject::tr("Auto-refresh");
 
 const QString SETTINGS_SECTION = "MainWindow";
@@ -45,8 +46,20 @@ MainWindow::MainWindow(QWidget *parent)
     m_imageWidget = new PreviewWidget(this);
     setCentralWidget(m_imageWidget);
 
+    m_exportPathLabel = new QLabel(this);
+    m_exportPathLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+    m_exportPathLabel->setMinimumWidth(200);
+    m_exportPathLabel->setText(EXPORT_TO_LABEL_FORMAT_STRING.arg(""));
+    m_exportPathLabel->setEnabled(false);
+
     m_currentImageFormatLabel = new QLabel(this);
+    m_currentImageFormatLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+
     m_autorefreshLabel = new QLabel(this);
+    m_autorefreshLabel->setText(AUTOREFRESH_STATUS_LABEL);
+    m_autorefreshLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+
+    statusBar()->addPermanentWidget(m_exportPathLabel);
     statusBar()->addPermanentWidget(m_autorefreshLabel);
     statusBar()->addPermanentWidget(m_currentImageFormatLabel);
 
@@ -72,7 +85,9 @@ void MainWindow::newDocument()
     m_documentPath.clear();
     m_exportPath.clear();
     m_cachedImage.clear();
-    m_exportImageAction->setText(EXPORT_IMAGE_TO_FORMAT_STRING.arg(""));
+    m_exportImageAction->setText(EXPORT_TO_MENU_FORMAT_STRING.arg(""));
+    m_exportPathLabel->setText(EXPORT_TO_LABEL_FORMAT_STRING.arg(""));
+    m_exportPathLabel->setEnabled(false);
 
     QString text = "@startuml\n\nclass Foo\n\n@enduml";
     m_editor->setPlainText(text);
@@ -186,11 +201,10 @@ void MainWindow::onAutoRefreshActionToggled(bool state)
     if (state) {
         refresh();
         m_autoRefreshTimer->start();
-        m_autorefreshLabel->setText(AUTOREFRESH_STATUS_LABEL);
     } else {
         m_autoRefreshTimer->stop();
-        m_autorefreshLabel->clear();
     }
+    m_autorefreshLabel->setEnabled(state);
 }
 
 void MainWindow::onEditorChanged()
@@ -273,8 +287,8 @@ void MainWindow::readSettings()
     m_autoRefreshTimer->setInterval(settings.value(SETTINGS_AUTOREFRESH_TIMEOUT, SETTINGS_AUTOREFRESH_TIMEOUT_DEFAULT).toInt());
     if (autorefresh_enabled) {
         m_autoRefreshTimer->start();
-        m_autorefreshLabel->setText(AUTOREFRESH_STATUS_LABEL);
     }
+    m_autorefreshLabel->setEnabled(autorefresh_enabled);
 
     m_currentImageFormat = m_imageFormatNames.key(settings.value(SETTINGS_IMAGE_FORMAT, m_imageFormatNames[SvgFormat]).toString());
     if (m_currentImageFormat == SvgFormat) {
@@ -385,9 +399,12 @@ void MainWindow::exportImage(const QString &name)
         return;
     }
     file.write(m_cachedImage);
-    m_exportImageAction->setText(EXPORT_IMAGE_TO_FORMAT_STRING.arg(tmp_name));
+    m_exportImageAction->setText(EXPORT_TO_MENU_FORMAT_STRING.arg(tmp_name));
     m_exportPath = tmp_name;
-    statusBar()->showMessage(tr("Image exported in %1").arg(QFileInfo(tmp_name).fileName()), STATUSBAR_TIMEOUT);
+    QString short_tmp_name = QFileInfo(tmp_name).fileName();
+    statusBar()->showMessage(tr("Image exported in %1").arg(short_tmp_name), STATUSBAR_TIMEOUT);
+    m_exportPathLabel->setText(EXPORT_TO_LABEL_FORMAT_STRING.arg(short_tmp_name));
+    m_exportPathLabel->setEnabled(true);
 }
 
 void MainWindow::createActions()
@@ -409,7 +426,7 @@ void MainWindow::createActions()
     m_saveAsDocumentAction->setShortcuts(QKeySequence::SaveAs);
     connect(m_saveAsDocumentAction, SIGNAL(triggered()), this, SLOT(onSaveAsActionTriggered()));
 
-    m_exportImageAction = new QAction(EXPORT_IMAGE_TO_FORMAT_STRING.arg(""), this);
+    m_exportImageAction = new QAction(EXPORT_TO_MENU_FORMAT_STRING.arg(""), this);
     m_exportImageAction->setShortcut(Qt::CTRL + Qt::Key_E);
     connect(m_exportImageAction, SIGNAL(triggered()), this, SLOT(onExportImageActionTriggered()));
 
