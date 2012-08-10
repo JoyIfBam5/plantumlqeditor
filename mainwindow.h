@@ -25,9 +25,11 @@ private slots:
     void refreshFinished();
     void changeImageFormat();
     void onAutoRefreshActionToggled(bool state);
-    void onDocumentChanged();
+    void onEditorChanged();
     void onRefreshActionTriggered();
     void onPreferencesActionTriggered();
+    void onSaveActionTriggered();
+    void onSaveAsActionTriggered();
 
 private:
     enum ImageFormat { SvgFormat, PngFormat };
@@ -35,6 +37,7 @@ private:
 
     void readSettings();
     void writeSettings();
+    void save(const QString& name);
 
     void newDocument();
 
@@ -45,6 +48,8 @@ private:
     void createDockWindows();
 
     void checkPaths();
+
+    QString m_documentPath;
 
     QString m_javaPath;
     QString m_platUmlPath;

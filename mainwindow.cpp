@@ -6,6 +6,7 @@
 
 namespace {
 const int STATUSBAR_TIMEOUT = 3000; // in miliseconds
+const QString TITLE_FORMAT_STRING = "%1[*] - %2";
 
 const QString SETTINGS_SECTION = "MainWindow";
 const QString SETTINGS_GEOMETRY = "geometry";
@@ -28,6 +29,11 @@ MainWindow::MainWindow(QWidget *parent)
     , m_currentImageFormat(SvgFormat)
     , m_needsRefresh(false)
 {
+    setWindowTitle(TITLE_FORMAT_STRING
+                   .arg("")
+                   .arg(qApp->applicationName())
+                   );
+
     m_autoRefreshTimer = new QTimer(this);
     connect(m_autoRefreshTimer, SIGNAL(timeout()), this, SLOT(refresh()));
 
@@ -43,8 +49,6 @@ MainWindow::MainWindow(QWidget *parent)
     createToolBars();
     createStatusBar();
 
-    setWindowTitle(tr("PlantUML Editor"));
-
     setUnifiedTitleAndToolBarOnMac(true);
 
     readSettings();
@@ -58,22 +62,30 @@ MainWindow::~MainWindow()
 
 void MainWindow::newDocument()
 {
+    m_documentPath.clear();
     QString text = "@startuml\n\nclass Foo\n\n@enduml";
     m_editor->setPlainText(text);
+    setWindowTitle(TITLE_FORMAT_STRING
+                   .arg(tr("New File"))
+                   .arg(qApp->applicationName())
+                   );
+    setWindowModified(false);
     refresh();
 }
 
 void MainWindow::about()
 {
-    QMessageBox::about(this, tr("About %1").arg(windowTitle()),
+    QMessageBox::about(this, tr("About %1").arg(qApp->applicationName()),
                        tr(
                            "The <b>%1</b> allows simple edit and preview of UML "
                            "diagrams generated with <u>%2</u>.<br>"
                            "<br>"
                            "<u>%2</u> and <u>%3</u> must be installed before "
-                           "using %1."
+                           "using the editor.<br>"
+                           "<br>"
+                           "<center>Copyright (c) 2012 - Ionutz Borcoman</center>"
                            )
-                       .arg(windowTitle()).arg("PlantUML").arg("graphiz")
+                       .arg(qApp->applicationName()).arg("PlantUML").arg("graphiz")
                        );
 }
 
@@ -167,9 +179,10 @@ void MainWindow::onAutoRefreshActionToggled(bool state)
     }
 }
 
-void MainWindow::onDocumentChanged()
+void MainWindow::onEditorChanged()
 {
     m_needsRefresh = true;
+    setWindowModified(true);
 }
 
 void MainWindow::onRefreshActionTriggered()
@@ -193,6 +206,16 @@ void MainWindow::onPreferencesActionTriggered()
         m_autoRefreshTimer->setInterval(dialog.autoRefreshTimeout() * TIMEOUT_SCALE);
         checkPaths();
     }
+}
+
+void MainWindow::onSaveActionTriggered()
+{
+    save(m_documentPath);
+}
+
+void MainWindow::onSaveAsActionTriggered()
+{
+    save("");
 }
 
 void MainWindow::closeEvent(QCloseEvent *)
@@ -254,6 +277,35 @@ void MainWindow::writeSettings()
     settings.endGroup();
 }
 
+void MainWindow::save(const QString &name)
+{
+    qDebug() << "save: called with:" << name;
+    QString tmp_name = name;
+    if (tmp_name.isEmpty()) {
+        tmp_name = QFileDialog::getSaveFileName(this,
+                                                tr("Select a file to store the document"),
+                                                m_documentPath,
+                                                "PlantUML (*.plantuml);; All Files (*.*)"
+                                                );
+        if (tmp_name.isEmpty()) {
+            return;
+        }
+    }
+
+    qDebug() << "save: saving in:" << tmp_name;
+    QFile file(tmp_name);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        return;
+    }
+    file.write(m_editor->toPlainText().toAscii());
+    setWindowModified(false);
+    m_documentPath = tmp_name;
+    setWindowTitle(TITLE_FORMAT_STRING
+                   .arg(QFileInfo(tmp_name).fileName())
+                   .arg(qApp->applicationName())
+                   );
+}
+
 void MainWindow::createActions()
 {
     // File menu
@@ -265,9 +317,11 @@ void MainWindow::createActions()
 
     m_saveDocumentAction = new QAction(QIcon::fromTheme("document-save"), tr("&Save"), this);
     m_saveDocumentAction->setShortcuts(QKeySequence::Save);
+    connect(m_saveDocumentAction, SIGNAL(triggered()), this, SLOT(onSaveActionTriggered()));
 
     m_saveAsDocumentAction = new QAction(QIcon::fromTheme("document-save-as"), tr("Save As..."), this);
     m_saveAsDocumentAction->setShortcuts(QKeySequence::SaveAs);
+    connect(m_saveAsDocumentAction, SIGNAL(triggered()), this, SLOT(onSaveAsActionTriggered()));
 
     m_quitAction = new QAction(QIcon::fromTheme("application-exit"), tr("&Quit"), this);
     m_quitAction->setShortcuts(QKeySequence::Quit);
@@ -385,7 +439,7 @@ void MainWindow::createDockWindows()
 {
     QDockWidget *dock = new QDockWidget(tr("Text Editor"), this);
     m_editor = new QTextEdit(dock);
-    connect(m_editor, SIGNAL(textChanged()), this, SLOT(onDocumentChanged()));
+    connect(m_editor, SIGNAL(textChanged()), this, SLOT(onEditorChanged()));
     dock->setWidget(m_editor);
     dock->setObjectName("text_editor");
     addDockWidget(Qt::RightDockWidgetArea, dock);
