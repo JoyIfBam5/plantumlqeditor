@@ -643,8 +643,13 @@ void MainWindow::createDockWindows()
 
     dock = new QDockWidget(tr("Assistant"), this);
     m_assitantToolBox = new QToolBox(dock);
-    m_assitantToolBox->addItem(new QLabel("label--1", this), "xxx1");
-    m_assitantToolBox->addItem(new QPushButton("button--2", this), "xxx2");
+    m_assitantToolBox->addItem(new QWidget(this), tr("Sequence Diagrams"));
+    m_assitantToolBox->addItem(new QWidget(this), tr("Use Case Diagrams"));
+    m_assitantToolBox->addItem(new QWidget(this), tr("Class Diagrams"));
+    m_assitantToolBox->addItem(new QWidget(this), tr("Activity Diagrams"));
+    m_assitantToolBox->addItem(new QWidget(this), tr("Component Diagrams"));
+    m_assitantToolBox->addItem(new QWidget(this), tr("State Diagrams"));
+    m_assitantToolBox->addItem(new QWidget(this), tr("Object Diagrams"));
 
     dock->setWidget(m_assitantToolBox);
     dock->setObjectName("assistant");
