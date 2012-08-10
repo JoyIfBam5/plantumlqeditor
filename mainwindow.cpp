@@ -164,6 +164,12 @@ void MainWindow::onDocumentChanged()
     m_needsRefresh = true;
 }
 
+void MainWindow::onRefreshActionTriggered()
+{
+    m_needsRefresh = true;
+    refresh();
+}
+
 void MainWindow::closeEvent(QCloseEvent *)
 {
     writeSettings();
@@ -246,12 +252,12 @@ void MainWindow::createActions()
     // Tools menu
     m_pngPreviewAction = new QAction(tr("PNG"), this);
     m_pngPreviewAction->setCheckable(true);
-    m_pngPreviewAction->setStatusTip(tr("Set PlantUML to produce PNG output"));
+    m_pngPreviewAction->setStatusTip(tr("Tell PlantUML to produce PNG output"));
     connect(m_pngPreviewAction, SIGNAL(toggled(bool)), this, SLOT(changeImageFormat()));
 
     m_svgPreviewAction = new QAction(tr("SVG"), this);
     m_svgPreviewAction->setCheckable(true);
-    m_svgPreviewAction->setStatusTip(tr("Set PlantUML to produce SVG output"));
+    m_svgPreviewAction->setStatusTip(tr("Tell PlantUML to produce SVG output"));
     connect(m_svgPreviewAction, SIGNAL(toggled(bool)), this, SLOT(changeImageFormat()));
 
     QActionGroup* output_action_group = new QActionGroup(this);
@@ -263,7 +269,7 @@ void MainWindow::createActions()
     m_refreshAction = new QAction(QIcon::fromTheme("view-refresh"), tr("Refresh"), this);
     m_refreshAction->setShortcuts(QKeySequence::Refresh);
     m_refreshAction->setStatusTip(tr("Call PlantUML to regenerate the UML image"));
-    connect(m_refreshAction, SIGNAL(triggered()), this, SLOT(refresh()));
+    connect(m_refreshAction, SIGNAL(triggered()), this, SLOT(onRefreshActionTriggered()));
 
     m_autoRefreshAction = new QAction(tr("Auto-Refresh"), this);
     m_autoRefreshAction->setCheckable(true);

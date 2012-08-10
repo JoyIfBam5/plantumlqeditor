@@ -26,6 +26,7 @@ private slots:
     void changeImageFormat();
     void onAutoRefreshActionToggled(bool state);
     void onDocumentChanged();
+    void onRefreshActionTriggered();
 
 private:
     enum ImageFormat { SvgFormat, PngFormat };
