@@ -31,6 +31,8 @@ private slots:
     void onPreferencesActionTriggered();
     void onSaveActionTriggered();
     void onSaveAsActionTriggered();
+    void onExportImageActionTriggered();
+    void onExportAsImageActionTriggered();
     void newDocument();
     void openDocument();
 
@@ -41,6 +43,7 @@ private:
     void readSettings();
     void writeSettings();
     void saveDocument(const QString& name);
+    void exportImage(const QString& name);
 
     void createActions();
     void createMenus();
@@ -54,6 +57,8 @@ private:
     QLabel *m_autorefreshLabel;
 
     QString m_documentPath;
+    QString m_exportPath;
+    QByteArray m_cachedImage;
 
     QString m_javaPath;
     QString m_platUmlPath;
@@ -75,6 +80,8 @@ private:
     QAction *m_openDocumentAction;
     QAction *m_saveDocumentAction;
     QAction *m_saveAsDocumentAction;
+    QAction *m_exportImageAction;
+    QAction *m_exportAsImageAction;
     QAction *m_quitAction;
 
     QMenu *m_editMenu;
@@ -83,7 +90,6 @@ private:
     QAction *m_refreshAction;
 
     QMenu *m_settingsMenu;
-    QAction *m_showAssistantAction;
     QAction *m_showEditorDockAction;
     QAction *m_showMainToolbarAction;
     QAction *m_showStatusBarAction;

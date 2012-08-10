@@ -7,6 +7,7 @@
 namespace {
 const int STATUSBAR_TIMEOUT = 3000; // in miliseconds
 const QString TITLE_FORMAT_STRING = "%1[*] - %2";
+const QString EXPORT_IMAGE_TO_FORMAT_STRING = QObject::tr("Export to %1");
 const QString AUTOREFRESH_STATUS_LABEL = QObject::tr("Auto-refresh");
 
 const QString SETTINGS_SECTION = "MainWindow";
@@ -69,6 +70,10 @@ MainWindow::~MainWindow()
 void MainWindow::newDocument()
 {
     m_documentPath.clear();
+    m_exportPath.clear();
+    m_cachedImage.clear();
+    m_exportImageAction->setText(EXPORT_IMAGE_TO_FORMAT_STRING.arg(""));
+
     QString text = "@startuml\n\nclass Foo\n\n@enduml";
     m_editor->setPlainText(text);
     setWindowTitle(TITLE_FORMAT_STRING
@@ -152,8 +157,8 @@ void MainWindow::refresh()
 
 void MainWindow::refreshFinished()
 {
-    QByteArray output = m_process->readAll();
-    m_imageWidget->load(output);
+    m_cachedImage = m_process->readAll();
+    m_imageWidget->load(m_cachedImage);
     m_process->deleteLater();
     m_process = 0;
     statusBar()->showMessage(tr("Refreshed"), STATUSBAR_TIMEOUT);
@@ -225,6 +230,16 @@ void MainWindow::onSaveActionTriggered()
 void MainWindow::onSaveAsActionTriggered()
 {
     saveDocument("");
+}
+
+void MainWindow::onExportImageActionTriggered()
+{
+    exportImage(m_exportPath);
+}
+
+void MainWindow::onExportAsImageActionTriggered()
+{
+    exportImage("");
 }
 
 void MainWindow::closeEvent(QCloseEvent *)
@@ -319,7 +334,7 @@ void MainWindow::saveDocument(const QString &name)
     QString tmp_name = name;
     if (tmp_name.isEmpty()) {
         tmp_name = QFileDialog::getSaveFileName(this,
-                                                tr("Select a file to store the document"),
+                                                tr("Select where to store the document"),
                                                 m_documentPath,
                                                 "PlantUML (*.plantuml);; All Files (*.*)"
                                                 );
@@ -340,6 +355,39 @@ void MainWindow::saveDocument(const QString &name)
                    .arg(QFileInfo(tmp_name).fileName())
                    .arg(qApp->applicationName())
                    );
+    statusBar()->showMessage(tr("Document save in %1").arg(tmp_name), STATUSBAR_TIMEOUT);
+}
+
+void MainWindow::exportImage(const QString &name)
+{
+    if (m_cachedImage.isEmpty()) {
+        qDebug() << "no image to export. aborting...";
+        return;
+    }
+
+    qDebug() << "export image: called with:" << name;
+    QString tmp_name = name;
+    if (tmp_name.isEmpty()) {
+        tmp_name = QFileDialog::getSaveFileName(this,
+                                                tr("Select where to export the image"),
+                                                m_documentPath,
+                                                "Image (*.svg *.png);; All Files (*.*)"
+                                                );
+        if (tmp_name.isEmpty()) {
+            return;
+        }
+    }
+
+    qDebug() << "export image: saving in:" << tmp_name;
+
+    QFile file(tmp_name);
+    if (!file.open(QIODevice::WriteOnly)) {
+        return;
+    }
+    file.write(m_cachedImage);
+    m_exportImageAction->setText(EXPORT_IMAGE_TO_FORMAT_STRING.arg(tmp_name));
+    m_exportPath = tmp_name;
+    statusBar()->showMessage(tr("Image exported in %1").arg(QFileInfo(tmp_name).fileName()), STATUSBAR_TIMEOUT);
 }
 
 void MainWindow::createActions()
@@ -360,6 +408,14 @@ void MainWindow::createActions()
     m_saveAsDocumentAction = new QAction(QIcon::fromTheme("document-save-as"), tr("Save As..."), this);
     m_saveAsDocumentAction->setShortcuts(QKeySequence::SaveAs);
     connect(m_saveAsDocumentAction, SIGNAL(triggered()), this, SLOT(onSaveAsActionTriggered()));
+
+    m_exportImageAction = new QAction(EXPORT_IMAGE_TO_FORMAT_STRING.arg(""), this);
+    m_exportImageAction->setShortcut(Qt::CTRL + Qt::Key_E);
+    connect(m_exportImageAction, SIGNAL(triggered()), this, SLOT(onExportImageActionTriggered()));
+
+    m_exportAsImageAction = new QAction(tr("Export as ..."), this);
+    m_exportAsImageAction->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_E);
+    connect(m_exportAsImageAction, SIGNAL(triggered()), this, SLOT(onExportAsImageActionTriggered()));
 
     m_quitAction = new QAction(QIcon::fromTheme("application-exit"), tr("&Quit"), this);
     m_quitAction->setShortcuts(QKeySequence::Quit);
@@ -426,6 +482,9 @@ void MainWindow::createMenus()
     m_fileMenu->addAction(m_openDocumentAction);
     m_fileMenu->addAction(m_saveDocumentAction);
     m_fileMenu->addAction(m_saveAsDocumentAction);
+    m_fileMenu->addSeparator();
+    m_fileMenu->addAction(m_exportImageAction);
+    m_fileMenu->addAction(m_exportAsImageAction);
     m_fileMenu->addSeparator();
     m_fileMenu->addAction(m_quitAction);
 
