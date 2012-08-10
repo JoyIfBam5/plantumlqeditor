@@ -25,8 +25,8 @@ MainWindow::MainWindow(QWidget *parent)
     m_imageFormatNames[SvgFormat] = "svg";
     m_imageFormatNames[PngFormat] = "png";
 
-    m_textEdit = new QTextEdit;
-    setCentralWidget(m_textEdit);
+    m_imageWidget = new PreviewWidget(this);
+    setCentralWidget(m_imageWidget);
 
     createDockWindows();
     createActions();
@@ -80,10 +80,10 @@ void MainWindow::refresh()
 
     switch(m_currentImageFormat) {
     case SvgFormat:
-        m_preview->setMode(PreviewWidget::SvgMode);
+        m_imageWidget->setMode(PreviewWidget::SvgMode);
         break;
     case PngFormat:
-        m_preview->setMode(PreviewWidget::PngMode);
+        m_imageWidget->setMode(PreviewWidget::PngMode);
         break;
     }
 
@@ -108,7 +108,7 @@ void MainWindow::refresh()
 void MainWindow::refreshFinished()
 {
     QByteArray output = m_process->readAll();
-    m_preview->load(output);
+    m_imageWidget->load(output);
     m_process->deleteLater();
     m_process = 0;
 }
@@ -297,14 +297,14 @@ void MainWindow::createStatusBar()
 
 void MainWindow::createDockWindows()
 {
-    QDockWidget *dock = new QDockWidget(tr("UML diagram"), this);
-    m_preview = new PreviewWidget(dock);
-    dock->setWidget(m_preview);
-    dock->setObjectName("uml_diagram");
+    QDockWidget *dock = new QDockWidget(tr("Text Editor"), this);
+    m_textEdit = new QTextEdit(dock);
+    dock->setWidget(m_textEdit);
+    dock->setObjectName("text_editor");
     addDockWidget(Qt::RightDockWidgetArea, dock);
 
     m_showPreviewAction = dock->toggleViewAction();
     m_showPreviewAction->setIconVisibleInMenu(false);
-    m_showPreviewAction->setStatusTip("Show or hide the UML diagram");
-    m_showPreviewAction->setIcon(QIcon::fromTheme("image-x-generic"));
+    m_showPreviewAction->setStatusTip("Show or hide the document editor");
+    m_showPreviewAction->setIcon(QIcon::fromTheme("accessories-text-editor"));
 }

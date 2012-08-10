@@ -44,7 +44,7 @@ private:
     ImageFormat m_currentImageFormat;
 
     QTextEdit *m_textEdit;
-    PreviewWidget *m_preview;
+    PreviewWidget *m_imageWidget;
 
     QToolBar *m_mainToolBar;
 
