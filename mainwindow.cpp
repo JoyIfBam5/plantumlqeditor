@@ -793,7 +793,8 @@ void MainWindow::reloadAssistantXml(const QString &path)
         } else {
             qDebug() << "using assistant" << m_assistantXmlPath;
 
-            AssistantXmlReader reader(m_assistantXmlPath);
+            AssistantXmlReader reader;
+            reader.readFile(m_assistantXmlPath);
             for (int i = 0; i < reader.size(); ++i) {
                 const Assistant* assistant = reader.assistant(i);
                 QListWidget* view = newAssistantListWidget(ASSISTANT_ICON_SIZE, this);
