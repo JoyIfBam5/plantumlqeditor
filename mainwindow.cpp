@@ -88,6 +88,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::newDocument()
 {
+    if (!maybeSave()) {
+        return;
+    }
+
     m_documentPath.clear();
     m_exportPath.clear();
     m_cachedImage.clear();
@@ -296,9 +300,30 @@ void MainWindow::onRecentDocumentsActionTriggered(const QString &path)
     openDocument(path);
 }
 
-void MainWindow::closeEvent(QCloseEvent *)
+void MainWindow::closeEvent(QCloseEvent *event)
 {
-    writeSettings();
+    if (maybeSave()) {
+        writeSettings();
+        event->accept();
+    } else {
+        event->ignore();
+    }
+}
+
+bool MainWindow::maybeSave()
+{
+    if (m_editor->document()->isModified()) {
+        QMessageBox::StandardButton ret;
+        ret = QMessageBox::warning(this, qApp->applicationName(),
+                                   tr("The document has been modified.\n"
+                                      "Do you want to save your changes?"),
+                                   QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        if (ret == QMessageBox::Save)
+            return saveDocument(m_documentPath);
+        else if (ret == QMessageBox::Cancel)
+            return false;
+    }
+    return true;
 }
 
 void MainWindow::readSettings()
@@ -375,6 +400,10 @@ void MainWindow::writeSettings()
 
 void MainWindow::openDocument(const QString &name)
 {
+    if (!maybeSave()) {
+        return;
+    }
+
     QString tmp_name = name;
 
     if (tmp_name.isEmpty()) {
@@ -404,7 +433,7 @@ void MainWindow::openDocument(const QString &name)
     updateRecentDocumentsList(tmp_name);
 }
 
-void MainWindow::saveDocument(const QString &name)
+bool MainWindow::saveDocument(const QString &name)
 {
     qDebug() << "save: called with:" << name;
     QString tmp_name = name;
@@ -415,14 +444,14 @@ void MainWindow::saveDocument(const QString &name)
                                                 "PlantUML (*.plantuml);; All Files (*.*)"
                                                 );
         if (tmp_name.isEmpty()) {
-            return;
+            return false;
         }
     }
 
     qDebug() << "save: saving in:" << tmp_name;
     QFile file(tmp_name);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        return;
+        return false;
     }
     file.write(m_editor->toPlainText().toAscii());
     setWindowModified(false);
@@ -433,6 +462,7 @@ void MainWindow::saveDocument(const QString &name)
                    );
     statusBar()->showMessage(tr("Document save in %1").arg(tmp_name), STATUSBAR_TIMEOUT);
     updateRecentDocumentsList(tmp_name);
+    return true;
 }
 
 void MainWindow::exportImage(const QString &name)

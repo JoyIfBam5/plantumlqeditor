@@ -49,11 +49,13 @@ private slots:
 
 private:
     enum ImageFormat { SvgFormat, PngFormat };
-    void closeEvent(QCloseEvent *);
 
+    void closeEvent(QCloseEvent *event);
+
+    bool maybeSave();
     void readSettings();
     void writeSettings();
-    void saveDocument(const QString& name);
+    bool saveDocument(const QString& name);
     void exportImage(const QString& name);
 
     void createActions();
