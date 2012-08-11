@@ -25,11 +25,15 @@ void PreviewWidget::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
     if (m_mode == PngMode) {
-        painter.drawImage(QPoint(0, 0), m_image);
+        QSize output_size = m_image.size();
+        QRect output_rect(QPoint(), output_size);
+        output_rect.translate(rect().center() - output_rect.center());
+        painter.drawImage(output_rect.topLeft(), m_image);
     } else if (m_mode == SvgMode) {
-        QRect output_rect(QPoint(), m_svgRenderer->defaultSize());
-        QSize adjusted_size = output_rect.size();
-        adjusted_size.scale(rect().size(), Qt::KeepAspectRatio);
-        m_svgRenderer->render(&painter, QRectF(QPointF(), adjusted_size));
+        QSize output_size = m_svgRenderer->defaultSize();
+        output_size.scale(rect().size(), Qt::KeepAspectRatio);
+        QRect output_rect(QPoint(), output_size);
+        output_rect.translate(rect().center() - output_rect.center());
+        m_svgRenderer->render(&painter, output_rect);
     }
 }
