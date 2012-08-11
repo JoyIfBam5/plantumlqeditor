@@ -28,10 +28,13 @@ class Assistant : public QObject
     Q_OBJECT
 public:
     explicit Assistant(const QString& name, AssistantXmlReader *parent = 0);
+    ~Assistant();
 
     const QString& name() const { return m_name; }
     int size() const { return m_items.size(); }
+
     const AssistantItem* item(int index) const { return m_items.at(index); }
+    void append(AssistantItem* item);
 
 private:
     QString m_name;
@@ -54,6 +57,7 @@ private:
     void readRootElement();
     void skipUnknownElement();
     void readAssistantElement();
+    void readAssistantItemElement(Assistant *assistant);
 
     QString m_iconDir;
     QList<Assistant*> m_items;

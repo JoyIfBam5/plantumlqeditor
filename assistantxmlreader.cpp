@@ -102,8 +102,36 @@ void AssistantXmlReader::skipUnknownElement()
 
 void AssistantXmlReader::readAssistantElement()
 {
-    Assistant* assistant = new Assistant(m_reader.attributes().value("name").toString(), this);
+    QString name = m_reader.attributes().value("name").toString();
+    Assistant* assistant = new Assistant(name, this);
     m_items.append(assistant);
+
+    m_reader.readNext();
+    while (!m_reader.atEnd()) {
+        if (m_reader.isEndElement()) {
+            m_reader.readNext();
+            break;
+        }
+
+        if (m_reader.isStartElement()) {
+            if (m_reader.name() == "item") {
+                readAssistantItemElement(assistant);
+            } else {
+                skipUnknownElement();
+            }
+        } else {
+            m_reader.readNext();
+        }
+    }
+}
+
+void AssistantXmlReader::readAssistantItemElement(Assistant *assistant)
+{
+    QString name = m_reader.attributes().value("name").toString();
+    QString data; // TODO: read CDATA
+
+    AssistantItem* item = new AssistantItem(name, data, assistant);
+    assistant->append(item);
     skipUnknownElement();
 }
 
@@ -119,4 +147,13 @@ Assistant::Assistant(const QString &name, AssistantXmlReader *parent)
     : QObject(parent)
     , m_name(name)
 {
+}
+
+Assistant::~Assistant()
+{
+}
+
+void Assistant::append(AssistantItem *item)
+{
+    m_items.append(item);
 }

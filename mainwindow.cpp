@@ -32,6 +32,55 @@ const QString SETTINGS_RECENT_DOCUMENTS_SECTION = "recent_documents";
 const QString SETTINGS_RECENT_DOCUMENTS_DOCUMENT = "document";
 
 const QSize ASSISTANT_ICON_SIZE(128, 128);
+
+QIcon iconFromSvg(QSize size, const QString& path)
+{
+    QPixmap pixmap(size);
+    QPainter painter(&pixmap);
+    const QRect bounding_rect(QPoint(0, 0), size);
+
+    if (!path.isEmpty()) {
+        painter.setRenderHint(QPainter::Antialiasing, true);
+
+        painter.setBrush(QBrush(Qt::white, Qt::SolidPattern));
+        painter.setPen(Qt::NoPen);
+        painter.drawRect(bounding_rect);
+
+        QSvgRenderer svg(path);
+        QSize target_size = svg.defaultSize();
+        target_size.scale(size, Qt::KeepAspectRatio);
+        QRect target_rect = QRect(QPoint(0, 0), target_size);
+        target_rect.translate(bounding_rect.center() - target_rect.center());
+        svg.render(&painter, target_rect);
+    } else {
+        painter.setBrush(QBrush(Qt::white, Qt::SolidPattern));
+        painter.setPen(Qt::NoPen);
+        painter.drawRect(bounding_rect);
+
+        const int margin = 5;
+        QRect target_rect = bounding_rect.adjusted(margin, margin, -margin, -margin);
+        painter.setPen(Qt::SolidLine);
+        painter.drawRect(target_rect);
+        painter.drawLine(target_rect.topLeft(), target_rect.bottomRight() + QPoint(1, 1));
+        painter.drawLine(target_rect.bottomLeft() + QPoint(0, 1), target_rect.topRight() + QPoint(1, 0));
+    }
+
+    QIcon icon;
+    icon.addPixmap(pixmap);
+    return icon;
+}
+
+QListWidget* newAssistantListWidget(const QSize& icon_size, QWidget* parent)
+{
+    QListWidget* view = new QListWidget(parent);
+    view->setUniformItemSizes(true);
+    view->setMovement(QListView::Static);
+    view->setResizeMode(QListView::Adjust);
+    view->setIconSize(icon_size);
+    view->setViewMode(QListView::IconMode);
+    return view;
+}
+
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -687,41 +736,6 @@ void MainWindow::createDockWindows()
     m_showAssistantDockAction = dock->toggleViewAction();
 }
 
-QIcon iconFromSvg(QSize size, const QString& path)
-{
-    QPixmap pixmap(size);
-    QPainter painter(&pixmap);
-    const QRect bounding_rect(QPoint(0, 0), size);
-
-    painter.setRenderHint(QPainter::Antialiasing, true);
-
-    painter.setBrush(QBrush(Qt::white, Qt::SolidPattern));
-    painter.setPen(Qt::NoPen);
-    painter.drawRect(bounding_rect);
-
-    QSvgRenderer svg(path);
-    QSize target_size = svg.defaultSize();
-    target_size.scale(size, Qt::KeepAspectRatio);
-    QRect target_rect = QRect(QPoint(0, 0), target_size);
-    target_rect.translate(bounding_rect.center() - target_rect.center());
-    svg.render(&painter, target_rect);
-
-    QIcon icon;
-    icon.addPixmap(pixmap);
-    return icon;
-}
-
-QListWidget* newAssistantListWidget(const QSize& icon_size, QWidget* parent)
-{
-    QListWidget* view = new QListWidget(parent);
-    view->setUniformItemSizes(true);
-    view->setMovement(QListView::Static);
-    view->setResizeMode(QListView::Adjust);
-    view->setIconSize(icon_size);
-    view->setViewMode(QListView::IconMode);
-    return view;
-}
-
 void MainWindow::enableUndoRedoActions()
 {
     QTextDocument *document = m_editor->document();
@@ -792,7 +806,6 @@ void MainWindow::reloadAssistantXml(const QString &path)
             qDebug() << "no assistant defined";
         } else {
             qDebug() << "using assistant" << m_assistantXmlPath;
-
             AssistantXmlReader reader;
             reader.readFile(m_assistantXmlPath);
             for (int i = 0; i < reader.size(); ++i) {
