@@ -63,7 +63,6 @@ private:
     void createMenus();
     void createToolBars();
     void createStatusBar();
-    void createAssistants();
     void createDockWindows();
     void enableUndoRedoActions();
 
@@ -78,8 +77,10 @@ private:
 
     QString m_documentPath;
     QString m_exportPath;
-    QString m_assistantXmlPath;
     QByteArray m_cachedImage;
+
+    QString m_assistantXmlPath;
+    QList<QListWidget*> m_assistantWidgets;
 
     QStringList m_recentDocumentsList;
     QSignalMapper *m_recentDocumentsSignalMapper;

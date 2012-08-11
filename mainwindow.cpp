@@ -74,7 +74,6 @@ MainWindow::MainWindow(QWidget *parent)
     statusBar()->addPermanentWidget(m_currentImageFormatLabel);
 
     createDockWindows();
-    createAssistants();
     createActions();
     createMenus();
     createToolBars();
@@ -720,28 +719,6 @@ QListWidget* newAssistantListWidget(const QSize& icon_size, QWidget* parent)
     return view;
 }
 
-void MainWindow::createAssistants()
-{
-    QListWidget* view;
-
-    const QSize ICON_SIZE(128, 128);
-
-    view = newAssistantListWidget(ICON_SIZE, this);
-    new QListWidgetItem(iconFromSvg(ICON_SIZE, "/home/borco/projects/plantuml-editor/images/Sequence Diagrams - Simple sequence.svg"),
-                        tr("Simple Sequence"), view);
-    m_assistantToolBox->addItem(view, tr("Sequence Diagrams"));
-
-    view = newAssistantListWidget(ICON_SIZE, this);
-    new QListWidgetItem(iconFromSvg(ICON_SIZE, "/home/borco/projects/plantuml-editor/images/Class Diagrams - Relations.svg"),
-                        tr("Relations"), view);
-    new QListWidgetItem(iconFromSvg(ICON_SIZE, "/home/borco/projects/plantuml-editor/images/Class Diagrams - Label on relations.svg"),
-                        tr("Label on relations"), view);
-    new QListWidgetItem(iconFromSvg(ICON_SIZE, "/home/borco/projects/plantuml-editor/images/Class Diagrams - Directed label on relations.svg"),
-                        tr("Directed label on relations"), view);
-    m_assistantToolBox->addItem(view, tr("Class Diagrams"));
-    m_assistantToolBox->setCurrentWidget(view);
-}
-
 void MainWindow::enableUndoRedoActions()
 {
     QTextDocument *document = m_editor->document();
@@ -802,11 +779,38 @@ void MainWindow::reloadAssistantXml(const QString &path)
 {
     if (m_assistantXmlPath != path) {
         m_assistantXmlPath = path;
+
+        foreach (QListWidget* widget, m_assistantWidgets) {
+            widget->deleteLater();
+        }
+        m_assistantWidgets.clear();
+
         if (m_assistantXmlPath.isEmpty()) {
             qDebug() << "no assistant defined";
         } else {
-            // TODO: load the assistant here
             qDebug() << "using assistant" << m_assistantXmlPath;
+
+            // TODO: load the real assistant.xml here
+            QListWidget* view;
+
+            const QSize ICON_SIZE(128, 128);
+
+            view = newAssistantListWidget(ICON_SIZE, this);
+            new QListWidgetItem(iconFromSvg(ICON_SIZE, "/home/borco/projects/plantuml-editor/images/Sequence Diagrams - Simple sequence.svg"),
+                                tr("Simple Sequence"), view);
+            m_assistantToolBox->addItem(view, tr("Sequence Diagrams"));
+            m_assistantWidgets << view;
+
+            view = newAssistantListWidget(ICON_SIZE, this);
+            new QListWidgetItem(iconFromSvg(ICON_SIZE, "/home/borco/projects/plantuml-editor/images/Class Diagrams - Relations.svg"),
+                                tr("Relations"), view);
+            new QListWidgetItem(iconFromSvg(ICON_SIZE, "/home/borco/projects/plantuml-editor/images/Class Diagrams - Label on relations.svg"),
+                                tr("Label on relations"), view);
+            new QListWidgetItem(iconFromSvg(ICON_SIZE, "/home/borco/projects/plantuml-editor/images/Class Diagrams - Directed label on relations.svg"),
+                                tr("Directed label on relations"), view);
+            m_assistantToolBox->addItem(view, tr("Class Diagrams"));
+            m_assistantWidgets << view;
+            m_assistantToolBox->setCurrentWidget(view);
         }
     }
 }
