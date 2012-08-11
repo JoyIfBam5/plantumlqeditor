@@ -374,7 +374,7 @@ void MainWindow::readSettings()
     settings.endGroup();
 
     int size = settings.beginReadArray(SETTINGS_RECENT_DOCUMENTS_SECTION);
-    for (int index = 0; index < size; ++index) {
+    for (int index = 0; index < qMin(size, MAX_RECENT_DOCUMENT_SIZE); ++index) {
         settings.setArrayIndex(index);
         m_recentDocumentsList.append(settings.value(SETTINGS_RECENT_DOCUMENTS_DOCUMENT).toString());
     }
