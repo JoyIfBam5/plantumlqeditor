@@ -17,3 +17,6 @@ HEADERS  += mainwindow.h \
 
 FORMS += \
     preferencesdialog.ui
+
+OTHER_FILES += \
+    assistant.xml

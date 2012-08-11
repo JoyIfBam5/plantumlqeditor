@@ -3,6 +3,7 @@
 #include "preferencesdialog.h"
 
 #include <QtGui>
+#include <QtSvg>
 
 namespace {
 const int MAX_RECENT_DOCUMENT_SIZE = 10;
@@ -72,6 +73,7 @@ MainWindow::MainWindow(QWidget *parent)
     statusBar()->addPermanentWidget(m_currentImageFormatLabel);
 
     createDockWindows();
+    createAssistants();
     createActions();
     createMenus();
     createToolBars();
@@ -435,7 +437,6 @@ void MainWindow::openDocument(const QString &name)
 
 bool MainWindow::saveDocument(const QString &name)
 {
-    qDebug() << "save: called with:" << name;
     QString tmp_name = name;
     if (tmp_name.isEmpty()) {
         tmp_name = QFileDialog::getSaveFileName(this,
@@ -448,7 +449,7 @@ bool MainWindow::saveDocument(const QString &name)
         }
     }
 
-    qDebug() << "save: saving in:" << tmp_name;
+    qDebug() << "saving document in:" << tmp_name;
     QFile file(tmp_name);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         return false;
@@ -472,7 +473,6 @@ void MainWindow::exportImage(const QString &name)
         return;
     }
 
-    qDebug() << "export image: called with:" << name;
     QString tmp_name = name;
     if (tmp_name.isEmpty()) {
         tmp_name = QFileDialog::getSaveFileName(this,
@@ -485,7 +485,7 @@ void MainWindow::exportImage(const QString &name)
         }
     }
 
-    qDebug() << "export image: saving in:" << tmp_name;
+    qDebug() << "exporting image in:" << tmp_name;
 
     QFile file(tmp_name);
     if (!file.open(QIODevice::WriteOnly)) {
@@ -670,20 +670,69 @@ void MainWindow::createDockWindows()
     m_showEditorDockAction->setIcon(QIcon::fromTheme("accessories-text-editor"));
 
     dock = new QDockWidget(tr("Assistant"), this);
-    m_assitantToolBox = new QToolBox(dock);
-    m_assitantToolBox->addItem(new QWidget(this), tr("Sequence Diagrams"));
-    m_assitantToolBox->addItem(new QWidget(this), tr("Use Case Diagrams"));
-    m_assitantToolBox->addItem(new QWidget(this), tr("Class Diagrams"));
-    m_assitantToolBox->addItem(new QWidget(this), tr("Activity Diagrams"));
-    m_assitantToolBox->addItem(new QWidget(this), tr("Component Diagrams"));
-    m_assitantToolBox->addItem(new QWidget(this), tr("State Diagrams"));
-    m_assitantToolBox->addItem(new QWidget(this), tr("Object Diagrams"));
-
-    dock->setWidget(m_assitantToolBox);
+    m_assistantToolBox = new QToolBox(dock);
+    dock->setWidget(m_assistantToolBox);
     dock->setObjectName("assistant");
     addDockWidget(Qt::LeftDockWidgetArea, dock);
 
     m_showAssistantDockAction = dock->toggleViewAction();
+}
+
+QIcon iconFromSvg(QSize size, const QString& path)
+{
+    QPixmap pixmap(size);
+    QPainter painter(&pixmap);
+    const QRect bounding_rect(QPoint(0, 0), size);
+
+    painter.setRenderHint(QPainter::Antialiasing, true);
+
+    painter.setBrush(QBrush(Qt::white, Qt::SolidPattern));
+    painter.setPen(Qt::NoPen);
+    painter.drawRect(bounding_rect);
+
+    QSvgRenderer svg(path);
+    QSize target_size = svg.defaultSize();
+    target_size.scale(size, Qt::KeepAspectRatio);
+    QRect target_rect = QRect(QPoint(0, 0), target_size);
+    target_rect.translate(bounding_rect.center() - target_rect.center());
+    svg.render(&painter, target_rect);
+
+    QIcon icon;
+    icon.addPixmap(pixmap);
+    return icon;
+}
+
+QListWidget* newAssistantListWidget(const QSize& icon_size, QWidget* parent)
+{
+    QListWidget* view = new QListWidget(parent);
+    view->setUniformItemSizes(true);
+    view->setMovement(QListView::Static);
+    view->setResizeMode(QListView::Adjust);
+    view->setIconSize(icon_size);
+    view->setViewMode(QListView::IconMode);
+    return view;
+}
+
+void MainWindow::createAssistants()
+{
+    QListWidget* view;
+
+    const QSize ICON_SIZE(128, 128);
+
+    view = newAssistantListWidget(ICON_SIZE, this);
+    new QListWidgetItem(iconFromSvg(ICON_SIZE, "/home/borco/projects/plantuml-editor/images/Sequence Diagrams - Simple sequence.svg"),
+                        tr("Simple Sequence"), view);
+    m_assistantToolBox->addItem(view, tr("Sequence Diagrams"));
+
+    view = newAssistantListWidget(ICON_SIZE, this);
+    new QListWidgetItem(iconFromSvg(ICON_SIZE, "/home/borco/projects/plantuml-editor/images/Class Diagrams - Relations.svg"),
+                        tr("Relations"), view);
+    new QListWidgetItem(iconFromSvg(ICON_SIZE, "/home/borco/projects/plantuml-editor/images/Class Diagrams - Label on relations.svg"),
+                        tr("Label on relations"), view);
+    new QListWidgetItem(iconFromSvg(ICON_SIZE, "/home/borco/projects/plantuml-editor/images/Class Diagrams - Directed label on relations.svg"),
+                        tr("Directed label on relations"), view);
+    m_assistantToolBox->addItem(view, tr("Class Diagrams"));
+    m_assistantToolBox->setCurrentWidget(view);
 }
 
 void MainWindow::enableUndoRedoActions()

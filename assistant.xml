@@ -1,0 +1,39 @@
+<assistants>
+    <assistant name="Class Diagrams">
+        <item name="Relations">
+            Class01 <|-- Class02
+            Class03 *-- Class04
+            Class05 o-- Class06
+            Class07 .. Class08
+            Class09 -- Class10
+            Class11 <|.. Class12
+            Class13 --> Class14
+            Class15 ..> Class16
+            Class17 ..|> Class18
+            Class19 <--* Class20
+        </item>
+        <item name="Label on relations">
+            Class01 "1" *-- "many" Class02 : contains
+
+            Class03 o-- Class04 : agregation
+
+            Class05 --> "1" Class06
+        </item>
+        <item name="Directed labels on relations">
+            class Car
+
+            Driver - Car : drives >
+            Car *- Wheel : have 4 >
+            Car -- Person : < owns
+        </item>
+    </assistant>
+    <assistant name="Sequence Diagrams">
+        <item name="Simple Sequence">
+            Alice -> Bob: Authentication Request
+            Bob --> Alice: Authentication Response
+
+            Alice -> Bob: Another authentication Request
+            Alice <-- Bob: another authentication Response
+        </item>
+    </assistant>
+</assistants>

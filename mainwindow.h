@@ -13,6 +13,7 @@ class QTimer;
 class QLabel;
 class QSignalMapper;
 class QToolBox;
+class QListWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -62,6 +63,7 @@ private:
     void createMenus();
     void createToolBars();
     void createStatusBar();
+    void createAssistants();
     void createDockWindows();
     void enableUndoRedoActions();
 
@@ -93,7 +95,7 @@ private:
     QTextEdit *m_editor;
     PreviewWidget *m_imageWidget;
 
-    QToolBox *m_assitantToolBox;
+    QToolBox *m_assistantToolBox;
 
     QToolBar *m_mainToolBar;
 
