@@ -22,12 +22,16 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+    void openDocument(const QString& path);
+
+public slots:
+    void newDocument();
+
 private slots:
     void about();
     void refresh();
     void refreshFinished();
     void changeImageFormat();
-    void newDocument();
     void undo();
     void redo();
 
@@ -49,7 +53,6 @@ private:
 
     void readSettings();
     void writeSettings();
-    void openDocument(const QString& path);
     void saveDocument(const QString& name);
     void exportImage(const QString& name);
 

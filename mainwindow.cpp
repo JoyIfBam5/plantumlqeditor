@@ -80,8 +80,6 @@ MainWindow::MainWindow(QWidget *parent)
     setUnifiedTitleAndToolBarOnMac(true);
 
     readSettings();
-
-    newDocument();
 }
 
 MainWindow::~MainWindow()
