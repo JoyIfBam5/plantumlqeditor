@@ -31,7 +31,7 @@
         </item>
     </assistant>
     <assistant name="Sequence Diagrams">
-        <item name="Simple Sequence"><![CDATA[
+        <item name="Simple sequence"><![CDATA[
             Alice -> Bob: Authentication Request
             Bob --> Alice: Authentication Response
 

@@ -130,20 +130,21 @@ void AssistantXmlReader::readAssistantItemElement(Assistant *assistant)
     QString name = m_reader.attributes().value("name").toString();
     QString data; // TODO: read CDATA
 
-    AssistantItem* item = new AssistantItem(name, data, assistant);
+    AssistantItem* item = new AssistantItem(name, data, m_iconDir + "/" + assistant->name(), assistant);
     assistant->append(item);
     skipUnknownElement();
 }
 
-AssistantItem::AssistantItem(const QString &name, const QString &data, Assistant *parent)
+AssistantItem::AssistantItem(const QString &name, const QString &data, const QString& icon_prefix, QObject *parent)
     : QObject(parent)
     , m_name(name)
     , m_data(data)
 {
+    m_icon = icon_prefix + " - " + name + ".svg";
 }
 
 
-Assistant::Assistant(const QString &name, AssistantXmlReader *parent)
+Assistant::Assistant(const QString &name, QObject *parent)
     : QObject(parent)
     , m_name(name)
 {
@@ -151,6 +152,10 @@ Assistant::Assistant(const QString &name, AssistantXmlReader *parent)
 
 Assistant::~Assistant()
 {
+    foreach(AssistantItem* item, m_items) {
+        delete item;
+    }
+    m_items.clear();
 }
 
 void Assistant::append(AssistantItem *item)

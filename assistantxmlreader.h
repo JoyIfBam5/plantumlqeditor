@@ -11,7 +11,7 @@ class AssistantItem : public QObject
 {
     Q_OBJECT
 public:
-    explicit AssistantItem(const QString& name, const QString& data, Assistant *parent = 0);
+    explicit AssistantItem(const QString& name, const QString& data, const QString& icon_prefix, QObject *parent = 0);
 
     const QString& name() const { return m_name; }
     const QString& data() const { return m_data; }
@@ -27,7 +27,7 @@ class Assistant : public QObject
 {
     Q_OBJECT
 public:
-    explicit Assistant(const QString& name, AssistantXmlReader *parent = 0);
+    explicit Assistant(const QString& name, QObject *parent = 0);
     ~Assistant();
 
     const QString& name() const { return m_name; }
