@@ -128,10 +128,15 @@ void AssistantXmlReader::readAssistantElement()
 void AssistantXmlReader::readAssistantItemElement(Assistant *assistant)
 {
     QString name = m_reader.attributes().value("name").toString();
-    QString data; // TODO: read CDATA
+
+    // we assume the data is stored in the next child CDATA
+    m_reader.readNext();
+    QString data = m_reader.text().toString();
+    m_reader.readNext();
 
     AssistantItem* item = new AssistantItem(name, data, m_iconDir + "/" + assistant->name(), assistant);
     assistant->append(item);
+
     skipUnknownElement();
 }
 
