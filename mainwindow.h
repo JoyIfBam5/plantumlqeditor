@@ -14,6 +14,7 @@ class QLabel;
 class QSignalMapper;
 class QToolBox;
 class QListWidget;
+class QListWidgetItem;
 
 class MainWindow : public QMainWindow
 {
@@ -47,6 +48,7 @@ private slots:
     void onExportAsImageActionTriggered();
     void onClearRecentDocumentsActionTriggered();
     void onRecentDocumentsActionTriggered(const QString& path);
+    void onAssistanItemClicked(QListWidgetItem* item);
 
 private:
     enum ImageFormat { SvgFormat, PngFormat };

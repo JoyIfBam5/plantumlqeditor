@@ -357,6 +357,11 @@ void MainWindow::onRecentDocumentsActionTriggered(const QString &path)
     openDocument(path);
 }
 
+void MainWindow::onAssistanItemClicked(QListWidgetItem *item)
+{
+    qDebug() << "data:" << item->data(Qt::UserRole).toString();
+}
+
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (maybeSave()) {
@@ -819,6 +824,8 @@ void MainWindow::reloadAssistantXml(const QString &path)
                     listWidgetItem->setData(Qt::UserRole, assistantItem->data());
                 }
                 m_assistantToolBox->addItem(view, assistant->name());
+                connect(view, SIGNAL(itemClicked(QListWidgetItem*)),
+                        this, SLOT(onAssistanItemClicked(QListWidgetItem*)));
                 m_assistantWidgets << view;
             }
         }
