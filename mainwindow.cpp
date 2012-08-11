@@ -359,7 +359,7 @@ void MainWindow::onRecentDocumentsActionTriggered(const QString &path)
 
 void MainWindow::onAssistanItemClicked(QListWidgetItem *item)
 {
-    qDebug() << "data:" << item->data(Qt::UserRole).toString();
+    insertAssistantCode(item->data(Qt::UserRole).toString());
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -829,5 +829,19 @@ void MainWindow::reloadAssistantXml(const QString &path)
                 m_assistantWidgets << view;
             }
         }
+    }
+}
+
+void MainWindow::insertAssistantCode(const QString &code)
+{
+    if (code.isEmpty())
+        return;
+
+    QTextCursor cursor = m_editor->textCursor();
+    if (!cursor.isNull()) {
+        cursor.beginEditBlock();
+        cursor.removeSelectedText();
+        cursor.insertText(code);
+        cursor.endEditBlock();
     }
 }

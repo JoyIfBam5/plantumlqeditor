@@ -72,6 +72,7 @@ private:
     void updateRecentDocumentsList(const QString& path);
     void updateRecentDocumentsMenu();
     void reloadAssistantXml(const QString& path);
+    void insertAssistantCode(const QString& code);
 
     QLabel *m_currentImageFormatLabel;
     QLabel *m_autorefreshLabel;
