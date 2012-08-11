@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "previewwidget.h"
 #include "preferencesdialog.h"
+#include "assistantxmlreader.h"
 
 #include <QtGui>
 #include <QtSvg>
@@ -29,6 +30,8 @@ const QString SETTINGS_ASSISTANT_XML_PATH = "assistant_xml";
 
 const QString SETTINGS_RECENT_DOCUMENTS_SECTION = "recent_documents";
 const QString SETTINGS_RECENT_DOCUMENTS_DOCUMENT = "document";
+
+const QSize ASSISTANT_ICON_SIZE(128, 128);
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -790,27 +793,20 @@ void MainWindow::reloadAssistantXml(const QString &path)
         } else {
             qDebug() << "using assistant" << m_assistantXmlPath;
 
-            // TODO: load the real assistant.xml here
-            QListWidget* view;
-
-            const QSize ICON_SIZE(128, 128);
-
-            view = newAssistantListWidget(ICON_SIZE, this);
-            new QListWidgetItem(iconFromSvg(ICON_SIZE, "/home/borco/projects/plantuml-editor/images/Sequence Diagrams - Simple sequence.svg"),
-                                tr("Simple Sequence"), view);
-            m_assistantToolBox->addItem(view, tr("Sequence Diagrams"));
-            m_assistantWidgets << view;
-
-            view = newAssistantListWidget(ICON_SIZE, this);
-            new QListWidgetItem(iconFromSvg(ICON_SIZE, "/home/borco/projects/plantuml-editor/images/Class Diagrams - Relations.svg"),
-                                tr("Relations"), view);
-            new QListWidgetItem(iconFromSvg(ICON_SIZE, "/home/borco/projects/plantuml-editor/images/Class Diagrams - Label on relations.svg"),
-                                tr("Label on relations"), view);
-            new QListWidgetItem(iconFromSvg(ICON_SIZE, "/home/borco/projects/plantuml-editor/images/Class Diagrams - Directed label on relations.svg"),
-                                tr("Directed label on relations"), view);
-            m_assistantToolBox->addItem(view, tr("Class Diagrams"));
-            m_assistantWidgets << view;
-            m_assistantToolBox->setCurrentWidget(view);
+            AssistantXmlReader reader(m_assistantXmlPath);
+            for (int i = 0; i < reader.size(); ++i) {
+                const Assistant* assistant = reader.assistant(i);
+                QListWidget* view = newAssistantListWidget(ASSISTANT_ICON_SIZE, this);
+                for (int j = 0; j < assistant->size(); ++j) {
+                    const AssistantItem* assistantItem = assistant->item(j);
+                    QListWidgetItem* listWidgetItem =
+                            new QListWidgetItem(iconFromSvg(ASSISTANT_ICON_SIZE, assistantItem->icon()),
+                                                assistantItem->name(), view);
+                    listWidgetItem->setData(Qt::UserRole, assistantItem->data());
+                }
+                m_assistantToolBox->addItem(view, assistant->name());
+                m_assistantWidgets << view;
+            }
         }
     }
 }

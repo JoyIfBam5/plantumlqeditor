@@ -9,11 +9,13 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     previewwidget.cpp \
-    preferencesdialog.cpp
+    preferencesdialog.cpp \
+    assistantxmlreader.cpp
 
 HEADERS  += mainwindow.h \
     previewwidget.h \
-    preferencesdialog.h
+    preferencesdialog.h \
+    assistantxmlreader.h
 
 FORMS += \
     preferencesdialog.ui
