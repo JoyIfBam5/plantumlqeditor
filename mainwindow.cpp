@@ -25,6 +25,7 @@ const QString SETTINGS_JAVA_PATH = "java";
 const QString SETTINGS_JAVA_PATH_DEFAULT = "/usr/bin/java";
 const QString SETTINGS_PLATUML_PATH = "plantuml";
 const QString SETTINGS_PLATUML_PATH_DEFAULT = "/usr/bin/plantuml";
+const QString SETTINGS_ASSISTANT_XML_PATH = "assistant_xml";
 
 const QString SETTINGS_RECENT_DOCUMENTS_SECTION = "recent_documents";
 const QString SETTINGS_RECENT_DOCUMENTS_DOCUMENT = "document";
@@ -256,6 +257,7 @@ void MainWindow::onPreferencesActionTriggered()
     dialog.setJavaPath(m_javaPath);
     dialog.setPlantUmlPath(m_platUmlPath);
     dialog.setAutoRefreshTimeout(m_autoRefreshTimer->interval() / TIMEOUT_SCALE);
+    dialog.setAssistantXml(m_assistantXmlPath);
     dialog.exec();
 
     if (dialog.result() == QDialog::Accepted) {
@@ -263,6 +265,8 @@ void MainWindow::onPreferencesActionTriggered()
         m_platUmlPath = dialog.plantUmlPath();
         m_autoRefreshTimer->setInterval(dialog.autoRefreshTimeout() * TIMEOUT_SCALE);
         checkPaths();
+
+        reloadAssistantXml(dialog.assistantXml());
     }
 }
 
@@ -365,6 +369,8 @@ void MainWindow::readSettings()
     }
     m_currentImageFormatLabel->setText(m_imageFormatNames[m_currentImageFormat].toUpper());
 
+    reloadAssistantXml(settings.value(SETTINGS_ASSISTANT_XML_PATH).toString());
+
     settings.endGroup();
 
     int size = settings.beginReadArray(SETTINGS_RECENT_DOCUMENTS_SECTION);
@@ -389,6 +395,7 @@ void MainWindow::writeSettings()
     settings.setValue(SETTINGS_AUTOREFRESH_TIMEOUT, m_autoRefreshTimer->interval());
     settings.setValue(SETTINGS_JAVA_PATH, m_javaPath);
     settings.setValue(SETTINGS_PLATUML_PATH, m_platUmlPath);
+    settings.setValue(SETTINGS_ASSISTANT_XML_PATH, m_assistantXmlPath);
     settings.endGroup();
 
     settings.remove(SETTINGS_RECENT_DOCUMENTS_SECTION);
@@ -789,4 +796,17 @@ void MainWindow::updateRecentDocumentsMenu()
         m_recentDocumentsMenu->addSeparator();
     }
     m_recentDocumentsMenu->addAction(m_clearRecentDocumentsAction);
+}
+
+void MainWindow::reloadAssistantXml(const QString &path)
+{
+    if (m_assistantXmlPath != path) {
+        m_assistantXmlPath = path;
+        if (m_assistantXmlPath.isEmpty()) {
+            qDebug() << "no assistant defined";
+        } else {
+            // TODO: load the assistant here
+            qDebug() << "using assistant" << m_assistantXmlPath;
+        }
+    }
 }

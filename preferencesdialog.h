@@ -24,10 +24,13 @@ public:
     void setAutoRefreshTimeout(int timeout);
     int autoRefreshTimeout() const;
 
+    void setAssistantXml(const QString& path);
+    QString assistantXml() const;
+
 private slots:
     void on_javaPathButton_clicked();
-
     void on_plantUmlButton_clicked();
+    void on_assistantXmlButton_clicked();
 
 private:
     Ui::PreferencesDialog *m_ui;

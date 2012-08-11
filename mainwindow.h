@@ -70,6 +70,7 @@ private:
     void checkPaths();
     void updateRecentDocumentsList(const QString& path);
     void updateRecentDocumentsMenu();
+    void reloadAssistantXml(const QString& path);
 
     QLabel *m_currentImageFormatLabel;
     QLabel *m_autorefreshLabel;
@@ -77,6 +78,7 @@ private:
 
     QString m_documentPath;
     QString m_exportPath;
+    QString m_assistantXmlPath;
     QByteArray m_cachedImage;
 
     QStringList m_recentDocumentsList;

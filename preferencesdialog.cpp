@@ -44,6 +44,16 @@ int PreferencesDialog::autoRefreshTimeout() const
     return m_ui->autoRefreshSpin->value();
 }
 
+void PreferencesDialog::setAssistantXml(const QString &path)
+{
+    m_ui->assistantXmlEdit->setText(path);
+}
+
+QString PreferencesDialog::assistantXml() const
+{
+    return m_ui->assistantXmlEdit->text();
+}
+
 void PreferencesDialog::on_javaPathButton_clicked()
 {
     QString file_name = QFileDialog::getOpenFileName(this,
@@ -60,4 +70,14 @@ void PreferencesDialog::on_plantUmlButton_clicked()
                                                     m_ui->plantUmlEdit->text());
     if (!file_name.isEmpty())
         m_ui->plantUmlEdit->setText(file_name);
+}
+
+void PreferencesDialog::on_assistantXmlButton_clicked()
+{
+    QString file_name = QFileDialog::getOpenFileName(this,
+                                                     tr("Select Assistant XML file"),
+                                                     m_ui->assistantXmlEdit->text(),
+                                                     tr("XML (*.xml);;All Files (*.*)"));
+    if (!file_name.isEmpty())
+        m_ui->assistantXmlEdit->setText(file_name);
 }
