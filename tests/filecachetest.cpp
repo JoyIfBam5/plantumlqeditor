@@ -208,9 +208,9 @@ TEST(FileCache, testAddingAgainAnItemOnlyUpdatesCostAndDate) {
 
     const int COST1 = 10;
     const int COST2 = 35;
-    const int COST3 = 17;
+    const int COST3 = 15;
 
-    const int MAX_COST = COST2 + qMax(COST1, COST3) + 5;
+    const int MAX_COST = COST2 + COST3 + 5;
 
     const QDateTime DATE_TIME1(QDate(2010, 1, 1), QTime(0, 0));
     const QDateTime DATE_TIME2(QDate(2010, 1, 2), QTime(0, 0));
@@ -225,8 +225,48 @@ TEST(FileCache, testAddingAgainAnItemOnlyUpdatesCostAndDate) {
     cache.addItem(new MockFileCacheItem(KEY1, COST3, DATE_TIME3));
 
     EXPECT_EQ(COST2 + COST3, cache.totalCost());
-    EXPECT_EQ(QSet<QString>::fromList(QList<QString>() << "item1" << "item2"),
+    EXPECT_EQ(QSet<QString>::fromList(QList<QString>() << KEY1 << KEY2),
               QSet<QString>::fromList(cache.keys()));
     EXPECT_EQ(COST3, cache.item(KEY1)->cost());
     EXPECT_EQ(DATE_TIME3, cache.item(KEY1)->dateTime());
+}
+
+TEST(FileCache, testCorrectFileIsDeletedFromDiskAfterUpdating) {
+    const char* KEY1 = "item1";
+    const char* KEY2 = "item2";
+    const char* KEY4 = "item4";
+
+    const int COST1 = 10;
+    const int COST2 = 35;
+    const int COST3 = 15;
+    const int COST4 = 40;
+
+    const int MAX_COST = COST4 + COST3 + 5;
+
+    const QDateTime DATE_TIME1(QDate(2010, 1, 1), QTime(0, 0));
+    const QDateTime DATE_TIME2(QDate(2010, 1, 2), QTime(0, 0));
+    const QDateTime DATE_TIME3(QDate(2010, 1, 3), QTime(0, 0));
+    const QDateTime DATE_TIME4(QDate(2010, 1, 4), QTime(0, 0));
+
+    FileCache cache(MAX_COST);
+    MockFileCacheItem* item1 = new MockFileCacheItem(KEY1, COST1, DATE_TIME1);
+    EXPECT_CALL(*item1, removeFileFromDisk()).Times(0);
+
+    MockFileCacheItem* item2 = new MockFileCacheItem(KEY2, COST2, DATE_TIME2);
+    EXPECT_CALL(*item2, removeFileFromDisk()).Times(1);
+
+    MockFileCacheItem* item3 = new MockFileCacheItem(KEY1, COST3, DATE_TIME3);
+    EXPECT_CALL(*item3, removeFileFromDisk()).Times(0);
+
+    MockFileCacheItem* item4 = new MockFileCacheItem(KEY4, COST4, DATE_TIME4);
+    EXPECT_CALL(*item4, removeFileFromDisk()).Times(0);
+
+    cache.addItem(item1);
+    cache.addItem(item2);
+    cache.addItem(item3);
+    cache.addItem(item4);
+
+    EXPECT_EQ(COST3 + COST4, cache.totalCost());
+    EXPECT_EQ(QSet<QString>::fromList(QList<QString>() << KEY1 << KEY4),
+              QSet<QString>::fromList(cache.keys()));
 }
