@@ -9,6 +9,7 @@ class AbstractFileCacheItem : public QObject
 {
 public:
     explicit AbstractFileCacheItem(const QString& key, int cost, const QDateTime& date_time, QObject* parent = 0);
+    virtual ~AbstractFileCacheItem() {}
 
     const QString& key() const { return m_key; }
     int cost() const { return m_cost; }
@@ -36,12 +37,13 @@ class FileCache : public QObject
 {
 public:
     FileCache(int maxCost = 0, QObject* parent = 0);
+    ~FileCache();
 
     int maxCost() const { return m_maxCost; }
     void setMaxCost(int max_cost);
 
     bool hasItem(const QString& key) const;
-    void addItem(const AbstractFileCacheItem* item);
+    void addItem(AbstractFileCacheItem* item);
 
     int totalCost() const { return m_totalCost; }
 
@@ -52,7 +54,7 @@ public:
 private:
     int m_maxCost;
     int m_totalCost;
-    QMap<QString, const AbstractFileCacheItem*> m_items;
+    QMap<QString, AbstractFileCacheItem*> m_items;
     QList<QString> m_indexByDate;
 };
 
@@ -61,6 +63,13 @@ FileCache::FileCache(int size, QObject *parent)
     , m_maxCost(size)
     , m_totalCost(0)
 {
+}
+
+FileCache::~FileCache()
+{
+    foreach (AbstractFileCacheItem* item, m_items) {
+        delete item;
+    }
 }
 
 void FileCache::setMaxCost(int max_cost)
@@ -73,7 +82,7 @@ bool FileCache::hasItem(const QString &key) const
     return m_items.contains(key);
 }
 
-void FileCache::addItem(const AbstractFileCacheItem *item)
+void FileCache::addItem(AbstractFileCacheItem *item)
 {
     m_items[item->key()] = item;
     m_totalCost += item->cost();
@@ -89,6 +98,7 @@ void FileCache::addItem(const AbstractFileCacheItem *item)
     if (!index_by_date_updated) {
         m_indexByDate.append(item->key());
     }
+    item->setParent(this);
 
     while (m_totalCost > m_maxCost && m_indexByDate.size() > 1) {
         QString tmp_key = m_indexByDate.value(0);
@@ -106,7 +116,7 @@ void FileCache::addItem(const AbstractFileCacheItem *item)
 class MockFileCacheItem : public AbstractFileCacheItem
 {
 public:
-    explicit MockFileCacheItem(const QString& key, int cost, const QDateTime& date_time, QObject* parent = 0)
+    explicit MockFileCacheItem(const QString& key, int cost, const QDateTime& date_time = QDateTime(), QObject* parent = 0)
         : AbstractFileCacheItem(key, cost, date_time, parent) {}
     MOCK_CONST_METHOD0(removeFileFromDisk, void());
 };
@@ -122,21 +132,28 @@ TEST(FileCache, testMaxCost) {
 TEST(FileCache, testItemFoundAfterItIsAdded) {
     FileCache cache(100);
     EXPECT_FALSE(cache.hasItem("foo"));
-    cache.addItem(new MockFileCacheItem("foo", 10, QDateTime(), &cache));
+    cache.addItem(new MockFileCacheItem("foo", 10));
     EXPECT_TRUE(cache.hasItem("foo"));
+}
+
+TEST(FileCache, testItemIsParentedWhenAdded) {
+    FileCache cache(100);
+    AbstractFileCacheItem* item = new MockFileCacheItem("foo", 10);
+    cache.addItem(item);
+    EXPECT_EQ(&cache, item->parent());
 }
 
 TEST(FileCache, testTotalCostIncreasesAfterItemIsAdded) {
     FileCache cache(100);
     EXPECT_EQ(0, cache.totalCost());
-    cache.addItem(new MockFileCacheItem("foo", 10, QDateTime(), &cache));
+    cache.addItem(new MockFileCacheItem("foo", 10));
     EXPECT_EQ(10, cache.totalCost());
 }
 
 TEST(FileCache, testSizeIncreasesAfterItemIsAdded) {
     FileCache cache(100);
     EXPECT_EQ(0, cache.size());
-    cache.addItem(new MockFileCacheItem("foo", 10, QDateTime(), &cache));
+    cache.addItem(new MockFileCacheItem("foo", 10));
     EXPECT_EQ(1, cache.size());
 }
 
@@ -145,7 +162,7 @@ TEST(FileCache, testRetrieveItemAfterItemIsAdded) {
     const int COST = 10;
     const QDateTime DATE_TIME(QDate(2012, 8, 1), QTime(0, 0));
     FileCache cache(100);
-    cache.addItem(new MockFileCacheItem(KEY, COST, DATE_TIME, &cache));
+    cache.addItem(new MockFileCacheItem(KEY, COST, DATE_TIME));
     const AbstractFileCacheItem* actual = cache.item(KEY);
     EXPECT_EQ(KEY, actual->key());
     EXPECT_EQ(COST, actual->cost());
@@ -155,15 +172,22 @@ TEST(FileCache, testRetrieveItemAfterItemIsAdded) {
 TEST(FileCache, testOlderItemsAreRemovedToMakeRoomForNewerOnes) {
     FileCache cache(100);
 
-    MockFileCacheItem* item1 = new MockFileCacheItem("item1", 10, QDateTime(QDate(2010, 1, 1), QTime(0, 0)), &cache);
-    EXPECT_CALL(*item1, removeFileFromDisk());
+    MockFileCacheItem* item1 = new MockFileCacheItem("item1", 10, QDateTime(QDate(2010, 1, 1), QTime(0, 0)));
+    EXPECT_CALL(*item1, removeFileFromDisk()).Times(1);
 
     cache.addItem(item1);
-    cache.addItem(new MockFileCacheItem("item2", 40, QDateTime(QDate(2010, 1, 2), QTime(0, 0)), &cache));
-    cache.addItem(new MockFileCacheItem("item3", 55, QDateTime(QDate(2010, 1, 3), QTime(0, 0)), &cache)); // forces "item1" out
+    cache.addItem(new MockFileCacheItem("item2", 40, QDateTime(QDate(2010, 1, 2), QTime(0, 0))));
+    cache.addItem(new MockFileCacheItem("item3", 55, QDateTime(QDate(2010, 1, 3), QTime(0, 0)))); // forces "item1" out
 
     EXPECT_EQ(2, cache.size());
     EXPECT_EQ(95, cache.totalCost());
     EXPECT_EQ(QSet<QString>::fromList(QList<QString>() << "item2" << "item3"),
               QSet<QString>::fromList(cache.keys()));
+}
+
+TEST(FileCache, testFileIsNotRemoveOnlyBecauseTheCacheIsDestroyed) {
+    FileCache cache(100);
+    MockFileCacheItem* item = new MockFileCacheItem("item", 10, QDateTime(QDate(2010, 1, 1), QTime(0, 0)));
+    EXPECT_CALL(*item, removeFileFromDisk()).Times(0);
+    cache.addItem(item);
 }
