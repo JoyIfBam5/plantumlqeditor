@@ -84,8 +84,17 @@ bool FileCache::hasItem(const QString &key) const
 
 void FileCache::addItem(AbstractFileCacheItem *item)
 {
+    AbstractFileCacheItem* old_item = m_items.value(item->key());
+    if (old_item) {
+        m_totalCost += item->cost() - old_item->cost();
+        m_indexByDate.removeOne(item->key());
+        m_items.remove(item->key());
+        delete old_item;
+    } else {
+        m_totalCost += item->cost();
+    }
+
     m_items[item->key()] = item;
-    m_totalCost += item->cost();
 
     bool index_by_date_updated = false;
     for(int index = 0; index < m_indexByDate.size(); index++) {
@@ -98,6 +107,7 @@ void FileCache::addItem(AbstractFileCacheItem *item)
     if (!index_by_date_updated) {
         m_indexByDate.append(item->key());
     }
+
     item->setParent(this);
 
     while (m_totalCost > m_maxCost && m_indexByDate.size() > 1) {
@@ -190,4 +200,33 @@ TEST(FileCache, testFileIsNotRemoveOnlyBecauseTheCacheIsDestroyed) {
     MockFileCacheItem* item = new MockFileCacheItem("item", 10, QDateTime(QDate(2010, 1, 1), QTime(0, 0)));
     EXPECT_CALL(*item, removeFileFromDisk()).Times(0);
     cache.addItem(item);
+}
+
+TEST(FileCache, testAddingAgainAnItemOnlyUpdatesCostAndDate) {
+    const char* KEY1 = "item1";
+    const char* KEY2 = "item2";
+
+    const int COST1 = 10;
+    const int COST2 = 35;
+    const int COST3 = 17;
+
+    const int MAX_COST = COST2 + qMax(COST1, COST3) + 5;
+
+    const QDateTime DATE_TIME1(QDate(2010, 1, 1), QTime(0, 0));
+    const QDateTime DATE_TIME2(QDate(2010, 1, 2), QTime(0, 0));
+    const QDateTime DATE_TIME3(QDate(2010, 1, 3), QTime(0, 0));
+
+    FileCache cache(MAX_COST);
+    MockFileCacheItem* item1 = new MockFileCacheItem(KEY1, COST1, DATE_TIME1);
+    EXPECT_CALL(*item1, removeFileFromDisk()).Times(0);
+
+    cache.addItem(item1);
+    cache.addItem(new MockFileCacheItem(KEY2, COST2, DATE_TIME2));
+    cache.addItem(new MockFileCacheItem(KEY1, COST3, DATE_TIME3));
+
+    EXPECT_EQ(COST2 + COST3, cache.totalCost());
+    EXPECT_EQ(QSet<QString>::fromList(QList<QString>() << "item1" << "item2"),
+              QSet<QString>::fromList(cache.keys()));
+    EXPECT_EQ(COST3, cache.item(KEY1)->cost());
+    EXPECT_EQ(DATE_TIME3, cache.item(KEY1)->dateTime());
 }
