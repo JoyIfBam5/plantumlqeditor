@@ -33,6 +33,8 @@ AbstractFileCacheItem::AbstractFileCacheItem(const QString &key, int cost, const
 
 //------------------------------------------------------------------------------
 
+struct FileCacheError {};
+
 class FileCache : public QObject
 {
 public:
@@ -86,6 +88,10 @@ void FileCache::addItem(AbstractFileCacheItem *item)
 {
     AbstractFileCacheItem* old_item = m_items.value(item->key());
     if (old_item) {
+        if (old_item == item) {
+            // adding the same item twice is an error
+            throw FileCacheError();
+        }
         m_totalCost += item->cost() - old_item->cost();
         m_indexByDate.removeOne(item->key());
         m_items.remove(item->key());
@@ -269,4 +275,11 @@ TEST(FileCache, testCorrectFileIsDeletedFromDiskAfterUpdating) {
     EXPECT_EQ(COST3 + COST4, cache.totalCost());
     EXPECT_EQ(QSet<QString>::fromList(QList<QString>() << KEY1 << KEY4),
               QSet<QString>::fromList(cache.keys()));
+}
+
+TEST(FileCache, testAddingSameItemTwiceThrowsException) {
+    FileCache cache(100);
+    AbstractFileCacheItem* item = new MockFileCacheItem("foo", 10);
+    EXPECT_NO_THROW(cache.addItem(item));
+    EXPECT_THROW(cache.addItem(item), FileCacheError);
 }
