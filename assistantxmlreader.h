@@ -53,6 +53,8 @@ public:
     const Assistant* assistant(int index) { return m_items.at(index); }
     const QString& iconDir() const { return m_iconDir; }
 
+    static QString removeWhiteSpace(const QString& data);
+
 private:
     void readRootElement();
     void skipUnknownElement();

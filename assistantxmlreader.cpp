@@ -7,32 +7,6 @@
 namespace {
 const QString ROOT_TAG = "assistants";
 const QString ASSISTANT_TAG = "assistant";
-
-QString removeWhiteSpace(const QString& data)
-{
-    QStringList lines = data.split('\n');
-
-    for (int i = 0; i < lines.size(); ++i) {
-        lines[i] = lines[i].trimmed();
-    }
-
-    int index_begin = 0;
-    int index_end = lines.size() - 1;
-
-    while (lines[index_begin].isEmpty() && index_begin < lines.size()) {
-        ++index_begin;
-    }
-
-    while (lines[index_end].isEmpty() && index_end >= index_begin) {
-        --index_end;
-    }
-
-    if (index_begin != 0 || index_end != lines.size()) {
-        lines = lines.mid(index_begin, index_end - index_begin);
-    }
-    return lines.join(QChar('\n'));
-}
-
 }
 
 AssistantXmlReader::AssistantXmlReader(QObject *parent)
@@ -87,6 +61,34 @@ bool AssistantXmlReader::readFile(const QString &path)
     }
 
     return true;
+}
+
+QString AssistantXmlReader::removeWhiteSpace(const QString &data)
+{
+    if (data.isEmpty())
+        return data;
+
+    QStringList lines = data.split('\n');
+
+    for (int i = 0; i < lines.size(); ++i) {
+        lines[i] = lines[i].trimmed();
+    }
+
+    int index_begin = 0;
+    int index_end = lines.size() - 1;
+
+    while (lines[index_begin].isEmpty() && index_begin < lines.size()) {
+        ++index_begin;
+    }
+
+    while (lines[index_end].isEmpty() && index_end > index_begin) {
+        --index_end;
+    }
+
+    if (index_begin != 0 || index_end != lines.size()) {
+        lines = lines.mid(index_begin, index_end - index_begin + 1);
+    }
+    return lines.join(QChar('\n'));
 }
 
 void AssistantXmlReader::readRootElement()
