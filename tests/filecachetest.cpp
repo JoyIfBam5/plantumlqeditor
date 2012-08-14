@@ -3,7 +3,17 @@
 #include <QDateTime>
 #include <QMap>
 #include <QSet>
+#include <QDir>
+#include "config.h"
+
+#include <QDebug>
 #include <gmock/gmock.h>
+
+//------------------------------------------------------------------------------
+
+struct FileCacheError {};
+
+//------------------------------------------------------------------------------
 
 class AbstractFileCacheItem : public QObject
 {
@@ -33,7 +43,36 @@ AbstractFileCacheItem::AbstractFileCacheItem(const QString &key, int cost, const
 
 //------------------------------------------------------------------------------
 
-struct FileCacheError {};
+class FileCacheItem : public AbstractFileCacheItem
+{
+public:
+    explicit FileCacheItem(const QString& path, const QString& key, int cost, const QDateTime& date_time, QObject* parent = 0);
+
+    virtual void removeFileFromDisk() const;
+
+private:
+    mutable bool m_removed;
+    const QString m_path;
+};
+
+FileCacheItem::FileCacheItem(const QString& path, const QString &key, int cost, const QDateTime &date_time, QObject *parent)
+    : AbstractFileCacheItem(key, cost, date_time, parent)
+    , m_path(path)
+    , m_removed(false)
+{
+    qDebug() << "FileCacheItem:" << path << key << cost << date_time;
+}
+
+void FileCacheItem::removeFileFromDisk() const
+{
+    if (m_removed)
+        throw FileCacheError(); // try to remove twice
+
+//    QDir().remove(m_path);
+    m_removed = true;
+}
+
+//------------------------------------------------------------------------------
 
 class FileCache : public QObject
 {
@@ -53,7 +92,16 @@ public:
     QList<QString> keys() const { return m_items.keys(); }
     const AbstractFileCacheItem* item(const QString& key) const { return m_items.value(key); }
 
+    void clear();
+    void clearFromDisk();
+
+    bool setPath(const QString& path);
+    const QString& path() const { return m_path; }
+
 private:
+    bool updateFromDisk(const QString &path);
+
+    QString m_path;
     int m_maxCost;
     int m_totalCost;
     QMap<QString, AbstractFileCacheItem*> m_items;
@@ -125,6 +173,58 @@ void FileCache::addItem(AbstractFileCacheItem *item)
         m_items.remove(tmp_key);
         m_indexByDate.removeAt(0);
         delete tmp_item;
+    }
+}
+
+void FileCache::clear()
+{
+    foreach (AbstractFileCacheItem* item, m_items) {
+        delete item;
+    }
+    m_items.clear();
+    m_indexByDate.clear();
+    m_totalCost = 0;
+}
+
+void FileCache::clearFromDisk()
+{
+    foreach (AbstractFileCacheItem* item, m_items) {
+        item->removeFileFromDisk();
+        delete item;
+    }
+    m_items.clear();
+    m_indexByDate.clear();
+    m_totalCost = 0;
+}
+
+bool FileCache::setPath(const QString &path)
+{
+    if (m_path != path) {
+        clear();
+        bool success = updateFromDisk(path);
+        if (success) {
+            m_path = path;
+        }
+        return success;
+    }
+    return true;
+}
+
+bool FileCache::updateFromDisk(const QString& path)
+{
+    QDir dir(path);
+    if (!dir.mkpath(path)) {
+        return false;
+    }
+
+    qDebug() << "scanning:" << path;
+
+    foreach (QFileInfo info, dir.entryInfoList(QDir::Files)) {
+        QString file_path = info.canonicalFilePath();
+        QString key = info.fileName();
+        int cost = info.size();
+        QDateTime date_time = info.lastRead();
+        addItem(new FileCacheItem(file_path, key, cost, date_time, this));
     }
 }
 
@@ -208,6 +308,26 @@ TEST(FileCache, testFileIsNotRemoveOnlyBecauseTheCacheIsDestroyed) {
     cache.addItem(item);
 }
 
+TEST(FileCache, testClearFromDiskRemovesFilesFromDisk) {
+    FileCache cache(100);
+    MockFileCacheItem* item = new MockFileCacheItem("foo", 10);
+    EXPECT_CALL(*item, removeFileFromDisk()).Times(1);
+    cache.addItem(item);
+    cache.clearFromDisk();
+    EXPECT_EQ(0, cache.size());
+    EXPECT_EQ(0, cache.totalCost());
+}
+
+TEST(FileCache, testClearDoenstRemovesFilesFromDisk) {
+    FileCache cache(100);
+    MockFileCacheItem* item = new MockFileCacheItem("foo", 10);
+    EXPECT_CALL(*item, removeFileFromDisk()).Times(0);
+    cache.addItem(item);
+    cache.clear();
+    EXPECT_EQ(0, cache.size());
+    EXPECT_EQ(0, cache.totalCost());
+}
+
 TEST(FileCache, testAddingAgainAnItemOnlyUpdatesCostAndDate) {
     const char* KEY1 = "item1";
     const char* KEY2 = "item2";
@@ -282,4 +402,20 @@ TEST(FileCache, testAddingSameItemTwiceThrowsException) {
     AbstractFileCacheItem* item = new MockFileCacheItem("foo", 10);
     EXPECT_NO_THROW(cache.addItem(item));
     EXPECT_THROW(cache.addItem(item), FileCacheError);
+}
+
+TEST(FileCache, testSetPath) {
+    FileCache cache(100);
+    cache.setPath(TEST_DIR1);
+    EXPECT_EQ(38, cache.totalCost());
+    EXPECT_EQ(QSet<QString>::fromList(QList<QString>()
+                                      << "item1.png"
+                                      << "item1.svg"
+                                      << "item2.svg"
+                                      << "item3.png"
+                                      << "item3.svg"
+                                      << "item4.svg"
+                                      << "item5.svg"
+                                      ),
+              QSet<QString>::fromList(cache.keys()));
 }

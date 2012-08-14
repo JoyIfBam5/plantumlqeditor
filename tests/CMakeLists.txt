@@ -1,3 +1,5 @@
+configure_file(config.h.in config.h)
+
 include_directories(
     ${QT_INCLUDES}
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -7,6 +9,7 @@ include_directories(
 macro(register_test APP)
     add_test(${APP} ${EXECUTABLE_OUTPUT_PATH}${APP})
 endmacro(register_test)
+
 
 #-------------------------------------------------------------------------------
 # test-assistantxmlreader

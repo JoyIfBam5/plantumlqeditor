@@ -1,0 +1,6 @@
+#ifndef TESTSCONFIG_H
+#define TESTSCONFIG_H
+
+#define TEST_DIR1 "@PROJECT_SOURCE_DIR@/tests/test_dir1"
+
+#endif // TESTSCONFIG_H
