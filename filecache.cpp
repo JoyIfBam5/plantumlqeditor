@@ -152,6 +152,7 @@ bool FileCache::updateFromDisk(const QString &path, ItemGenerator item_generator
         QDateTime date_time = info.lastRead();
         addItem(item_generator(file_path, key, cost, date_time, this));
     }
+    return true;
 }
 
 //------------------------------------------------------------------------------
