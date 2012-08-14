@@ -116,6 +116,8 @@ void FileCache::clear()
 
 void FileCache::clearFromDisk()
 {
+    qDebug() << "clear from disk:" << m_path;
+
     foreach (AbstractFileCacheItem* item, m_items) {
         item->removeFileFromDisk();
         delete item;
@@ -146,11 +148,10 @@ bool FileCache::updateFromDisk(const QString &path, ItemGenerator item_generator
     }
 
     foreach (QFileInfo info, dir.entryInfoList(QDir::Files)) {
-        QString file_path = info.canonicalFilePath();
         QString key = info.fileName();
         int cost = info.size();
         QDateTime date_time = info.lastRead();
-        addItem(item_generator(file_path, key, cost, date_time, this));
+        addItem(item_generator(path, key, cost, date_time, this));
     }
     return true;
 }

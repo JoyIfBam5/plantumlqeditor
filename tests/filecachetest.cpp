@@ -196,7 +196,7 @@ TEST(FileCache, testSetPath) {
                                 int cost,
                                 const QDateTime& date_time,
                                 QObject* parent
-                                ) { return new MockFileCacheItem(TEST_DIR1, key, cost, date_time, parent); });
+                                ) { return new MockFileCacheItem(path, key, cost, date_time, parent); });
     EXPECT_EQ(38, cache.totalCost());
     EXPECT_EQ(QSet<QString>::fromList(QList<QString>()
                                       << "item1.png"
