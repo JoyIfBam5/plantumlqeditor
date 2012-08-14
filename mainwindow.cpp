@@ -506,6 +506,7 @@ void MainWindow::readSettings()
 
     settings.endGroup();
 
+    m_recentDocumentsList.clear();
     int size = settings.beginReadArray(SETTINGS_RECENT_DOCUMENTS_SECTION);
     for (int index = 0; index < qMin(size, MAX_RECENT_DOCUMENT_SIZE); ++index) {
         settings.setArrayIndex(index);
