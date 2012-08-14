@@ -1,8 +1,9 @@
 #include "preferencesdialog.h"
 #include "ui_preferencesdialog.h"
-#include <QFileDialog>
 
+#include "filecache.h"
 #include "settingsconstants.h"
+#include <QFileDialog>
 #include <QSettings>
 
 namespace {
@@ -17,6 +18,9 @@ PreferencesDialog::PreferencesDialog(FileCache* file_cache, QWidget *parent)
 {
     m_ui->setupUi(this);
 
+    if (m_fileCache) {
+        m_ui->cacheCurrentSizeLabel->setText(QString("%1 kb").arg(m_fileCache->totalCost() / CACHE_SCALE));
+    }
     connect(this, SIGNAL(rejected()), this, SLOT(onRejected()));
 }
 
@@ -105,13 +109,25 @@ void PreferencesDialog::onRejected()
     settings.endGroup();
 }
 
+void PreferencesDialog::on_customJavaPathEdit_textEdited(const QString &)
+{
+    m_ui->customJavaRadio->setChecked(true);
+}
+
 void PreferencesDialog::on_customJavaPathButton_clicked()
 {
     QString file_name = QFileDialog::getOpenFileName(this,
                                                     tr("Select Java executable"),
                                                     m_ui->customJavaPathEdit->text());
-    if (!file_name.isEmpty())
+    if (!file_name.isEmpty()) {
         m_ui->customJavaPathEdit->setText(file_name);
+        m_ui->customJavaRadio->setChecked(true);
+    }
+}
+
+void PreferencesDialog::on_customPlantUmlEdit_textEdited(const QString &)
+{
+    m_ui->customPlantUmlRadio->setChecked(true);
 }
 
 void PreferencesDialog::on_customPlantUmlButton_clicked()
@@ -119,8 +135,10 @@ void PreferencesDialog::on_customPlantUmlButton_clicked()
     QString file_name = QFileDialog::getOpenFileName(this,
                                                     tr("Select PlantUML jar"),
                                                     m_ui->customPlantUmlEdit->text());
-    if (!file_name.isEmpty())
+    if (!file_name.isEmpty()) {
         m_ui->customPlantUmlEdit->setText(file_name);
+        m_ui->customPlantUmlRadio->setChecked(true);
+    }
 }
 
 void PreferencesDialog::on_assistantXmlButton_clicked()
@@ -129,6 +147,47 @@ void PreferencesDialog::on_assistantXmlButton_clicked()
                                                      tr("Select Assistant XML file"),
                                                      m_ui->assistantXmlEdit->text(),
                                                      tr("XML (*.xml);;All Files (*.*)"));
-    if (!file_name.isEmpty())
+    if (!file_name.isEmpty()) {
         m_ui->assistantXmlEdit->setText(file_name);
+    }
+}
+
+void PreferencesDialog::on_customGraphizEdit_textEdited(const QString &)
+{
+    m_ui->customGraphizRadio->setChecked(true);
+}
+
+void PreferencesDialog::on_customGraphizButton_clicked()
+{
+    QString file_name = QFileDialog::getOpenFileName(this,
+                                                     tr("Select Dot (from Graphiz) executable"),
+                                                     m_ui->customGraphizEdit->text());
+    if (!file_name.isEmpty()) {
+        m_ui->customGraphizEdit->setText(file_name);
+        m_ui->customGraphizRadio->setChecked(true);
+    }
+}
+
+void PreferencesDialog::on_customCacheEdit_textEdited(const QString &)
+{
+    m_ui->customCacheRadio->setChecked(true);
+}
+
+void PreferencesDialog::on_customCacheButton_clicked()
+{
+    QString dir_name = QFileDialog::getExistingDirectory(this,
+                                                         tr("Select new cache location"),
+                                                         m_ui->customCacheEdit->text());
+    if (!dir_name.isEmpty()) {
+        m_ui->customCacheEdit->setText(dir_name);
+        m_ui->customCacheRadio->setChecked(true);
+    }
+}
+
+void PreferencesDialog::on_clearCacheButton_clicked()
+{
+    if (m_fileCache) {
+        m_fileCache->clearFromDisk();
+        m_ui->cacheCurrentSizeLabel->setText(QString("%1 kb").arg(m_fileCache->totalCost() / CACHE_SCALE));
+    }
 }

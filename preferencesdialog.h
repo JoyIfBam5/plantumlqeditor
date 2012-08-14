@@ -22,9 +22,16 @@ public:
 
 private slots:
     void onRejected();
+    void on_customJavaPathEdit_textEdited(const QString &);
     void on_customJavaPathButton_clicked();
+    void on_customPlantUmlEdit_textEdited(const QString &);
     void on_customPlantUmlButton_clicked();
     void on_assistantXmlButton_clicked();
+    void on_customGraphizEdit_textEdited(const QString &);
+    void on_customGraphizButton_clicked();
+    void on_customCacheEdit_textEdited(const QString &);
+    void on_customCacheButton_clicked();
+    void on_clearCacheButton_clicked();
 
 private:
     Ui::PreferencesDialog *m_ui;
