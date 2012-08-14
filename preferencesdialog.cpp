@@ -30,10 +30,20 @@ void PreferencesDialog::readSettings()
 
     settings.beginGroup(SETTINGS_MAIN_SECTION);
 
-    m_ui->customJavaPathEdit->setText(settings.value(SETTINGS_JAVA_PATH).toString());
-    m_ui->customPlantUmlEdit->setText(settings.value(SETTINGS_PLATUML_PATH).toString());
+    m_ui->customJavaPathEdit->setText(settings.value(SETTINGS_CUSTOM_JAVA_PATH).toString());
+    m_ui->customPlantUmlEdit->setText(settings.value(SETTINGS_CUSTOM_PLANTUML_PATH).toString());
     m_ui->autoRefreshSpin->setValue(settings.value(SETTINGS_AUTOREFRESH_TIMEOUT).toInt() / TIMEOUT_SCALE);
     m_ui->assistantXmlEdit->setText(settings.value(SETTINGS_ASSISTANT_XML_PATH).toString());
+
+    if (settings.value(SETTINGS_USE_CUSTOM_JAVA, SETTINGS_USE_CUSTOM_JAVA_DEFAULT).toBool())
+        m_ui->customJavaRadio->setChecked(true);
+    else
+        m_ui->defaultJavaRadio->setChecked(true);
+
+    if (settings.value(SETTINGS_USE_CUSTOM_PLANTUML, SETTINGS_USE_CUSTOM_PLANTUML_DEFAULT).toBool())
+        m_ui->customPlantUmlRadio->setChecked(true);
+    else
+        m_ui->defaultPlatUmlRadio->setChecked(true);
 
     settings.endGroup();
 
@@ -48,10 +58,12 @@ void PreferencesDialog::writeSettings()
 
     settings.beginGroup(SETTINGS_MAIN_SECTION);
 
-    settings.setValue(SETTINGS_JAVA_PATH, m_ui->customJavaPathEdit->text());
-    settings.setValue(SETTINGS_PLATUML_PATH, m_ui->customPlantUmlEdit->text());
+    settings.setValue(SETTINGS_CUSTOM_JAVA_PATH, m_ui->customJavaPathEdit->text());
+    settings.setValue(SETTINGS_CUSTOM_PLANTUML_PATH, m_ui->customPlantUmlEdit->text());
     settings.setValue(SETTINGS_AUTOREFRESH_TIMEOUT, m_ui->autoRefreshSpin->value() * TIMEOUT_SCALE);
     settings.setValue(SETTINGS_ASSISTANT_XML_PATH, m_ui->assistantXmlEdit->text());
+    settings.setValue(SETTINGS_USE_CUSTOM_JAVA, m_ui->customJavaRadio->isChecked());
+    settings.setValue(SETTINGS_USE_CUSTOM_PLANTUML, m_ui->customPlantUmlRadio->isChecked());
     settings.endGroup();
 
     settings.beginGroup(SETTINGS_PREFERENCES_SECTION);

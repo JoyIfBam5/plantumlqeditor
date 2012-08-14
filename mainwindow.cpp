@@ -371,8 +371,8 @@ void MainWindow::readSettings()
 
     settings.beginGroup(SETTINGS_MAIN_SECTION);
 
-    m_javaPath = settings.value(SETTINGS_JAVA_PATH, SETTINGS_JAVA_PATH_DEFAULT).toString();
-    m_plantUmlPath = settings.value(SETTINGS_PLATUML_PATH, SETTINGS_PLATUML_PATH_DEFAULT).toString();
+    m_javaPath = settings.value(SETTINGS_CUSTOM_JAVA_PATH, SETTINGS_CUSTOM_JAVA_PATH_DEFAULT).toString();
+    m_plantUmlPath = settings.value(SETTINGS_CUSTOM_PLANTUML_PATH, SETTINGS_CUSTOM_PLANTUML_PATH_DEFAULT).toString();
     checkPaths();
 
     restoreGeometry(settings.value(SETTINGS_GEOMETRY).toByteArray());
@@ -426,8 +426,8 @@ void MainWindow::writeSettings()
     settings.setValue(SETTINGS_AUTOREFRESH_ENABLED, m_autoRefreshAction->isChecked());
     settings.setValue(SETTINGS_IMAGE_FORMAT, m_imageFormatNames[m_currentImageFormat]);
     settings.setValue(SETTINGS_AUTOREFRESH_TIMEOUT, m_autoRefreshTimer->interval());
-    settings.setValue(SETTINGS_JAVA_PATH, m_javaPath);
-    settings.setValue(SETTINGS_PLATUML_PATH, m_plantUmlPath);
+    settings.setValue(SETTINGS_CUSTOM_JAVA_PATH, m_javaPath);
+    settings.setValue(SETTINGS_CUSTOM_PLANTUML_PATH, m_plantUmlPath);
     settings.setValue(SETTINGS_ASSISTANT_XML_PATH, m_assistantXmlPath);
     settings.endGroup();
 

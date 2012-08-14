@@ -32,7 +32,7 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QRadioButton" name="custonJavaRadio">
+           <widget class="QRadioButton" name="customJavaRadio">
             <property name="text">
              <string>Custom</string>
             </property>
