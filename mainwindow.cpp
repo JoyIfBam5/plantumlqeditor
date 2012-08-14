@@ -4,6 +4,7 @@
 #include "assistantxmlreader.h"
 #include "settingsconstants.h"
 #include "filecache.h"
+#include "utils.h"
 
 #include <QtGui>
 #include <QtSvg>
@@ -15,7 +16,7 @@ const QString TITLE_FORMAT_STRING = "%1[*] - %2";
 const QString EXPORT_TO_MENU_FORMAT_STRING = QObject::tr("Export to %1");
 const QString EXPORT_TO_LABEL_FORMAT_STRING = QObject::tr("Export to: %1");
 const QString AUTOREFRESH_STATUS_LABEL = QObject::tr("Auto-refresh");
-
+const QString CACHE_SIZE_FORMAT_STRING = QObject::tr("Cache: %1");
 const QSize ASSISTANT_ICON_SIZE(128, 128);
 
 QIcon iconFromSvg(QSize size, const QString& path)
@@ -104,11 +105,17 @@ MainWindow::MainWindow(QWidget *parent)
     m_currentImageFormatLabel = new QLabel(this);
     m_currentImageFormatLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
 
+    QFontMetrics font_metrics(m_exportPathLabel->font());
+    m_cacheSizeLabel = new QLabel(this);
+    m_cacheSizeLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+    m_cacheSizeLabel->setMinimumWidth(font_metrics.width(QString(CACHE_SIZE_FORMAT_STRING.arg("#.## Mb"))));
+
     m_autorefreshLabel = new QLabel(this);
     m_autorefreshLabel->setText(AUTOREFRESH_STATUS_LABEL);
     m_autorefreshLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
 
     statusBar()->addPermanentWidget(m_exportPathLabel);
+    statusBar()->addPermanentWidget(m_cacheSizeLabel);
     statusBar()->addPermanentWidget(m_autorefreshLabel);
     statusBar()->addPermanentWidget(m_currentImageFormatLabel);
 
@@ -294,6 +301,13 @@ void MainWindow::refresh(bool forced)
     m_process->closeWriteChannel();
 }
 
+void MainWindow::updateCacheSizeInfo()
+{
+    m_cacheSizeLabel->setText(m_useCache ?
+                                  CACHE_SIZE_FORMAT_STRING.arg(cacheSizeToString(m_cache->totalCost())) :
+                                  tr("NO CACHE"));
+}
+
 void MainWindow::refreshFinished()
 {
     m_cachedImage = m_process->readAll();
@@ -309,6 +323,7 @@ void MainWindow::refreshFinished()
                             const QDateTime& date_time,
                             QObject* parent
                             ) { return new FileCacheItem(path, key, cost, date_time, parent); });
+        updateCacheSizeInfo();
     }
     statusBar()->showMessage(tr("Refreshed"), STATUSBAR_TIMEOUT);
 }
@@ -514,6 +529,7 @@ void MainWindow::readSettings()
     }
     settings.endArray();
     updateRecentDocumentsMenu();
+    updateCacheSizeInfo();
 }
 
 void MainWindow::writeSettings()

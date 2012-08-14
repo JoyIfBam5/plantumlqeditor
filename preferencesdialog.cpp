@@ -1,15 +1,11 @@
 #include "preferencesdialog.h"
 #include "ui_preferencesdialog.h"
 
+#include "utils.h"
 #include "filecache.h"
 #include "settingsconstants.h"
 #include <QFileDialog>
 #include <QSettings>
-
-namespace {
-const int TIMEOUT_SCALE = 1000;
-const double CACHE_SCALE = 1024*1024;
-}
 
 PreferencesDialog::PreferencesDialog(FileCache* file_cache, QWidget *parent)
     : QDialog(parent)
@@ -19,7 +15,7 @@ PreferencesDialog::PreferencesDialog(FileCache* file_cache, QWidget *parent)
     m_ui->setupUi(this);
 
     if (m_fileCache) {
-        m_ui->cacheCurrentSizeLabel->setText(QString("%1 Mb").arg(m_fileCache->totalCost() / CACHE_SCALE, 0, 'f', 2));
+        m_ui->cacheCurrentSizeLabel->setText(cacheSizeToString(m_fileCache->totalCost()));
     }
     connect(this, SIGNAL(rejected()), this, SLOT(onRejected()));
 }
@@ -188,6 +184,6 @@ void PreferencesDialog::on_clearCacheButton_clicked()
 {
     if (m_fileCache) {
         m_fileCache->clearFromDisk();
-        m_ui->cacheCurrentSizeLabel->setText(QString("%1 Mb").arg(m_fileCache->totalCost() / CACHE_SCALE, 0, 'f', 2));
+        m_ui->cacheCurrentSizeLabel->setText(cacheSizeToString(m_fileCache->totalCost()));
     }
 }

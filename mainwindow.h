@@ -77,10 +77,12 @@ private:
     void insertAssistantCode(const QString& code);
 
     bool refreshFromCache();
+    void updateCacheSizeInfo();
 
     QLabel *m_currentImageFormatLabel;
     QLabel *m_autorefreshLabel;
     QLabel *m_exportPathLabel;
+    QLabel *m_cacheSizeLabel;
 
     QString m_documentPath;
     QString m_exportPath;
