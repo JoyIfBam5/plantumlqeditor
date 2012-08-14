@@ -10,12 +10,14 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     previewwidget.cpp \
     preferencesdialog.cpp \
-    assistantxmlreader.cpp
+    assistantxmlreader.cpp \
+    filecache.cpp
 
 HEADERS  += mainwindow.h \
     previewwidget.h \
     preferencesdialog.h \
-    assistantxmlreader.h
+    assistantxmlreader.h \
+    filecache.h
 
 FORMS += \
     preferencesdialog.ui
