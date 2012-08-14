@@ -2,7 +2,6 @@
 #include "config.h"
 #include <QDir>
 #include <gmock/gmock.h>
-#include <QDebug>
 
 using ::testing::_;
 
@@ -93,7 +92,6 @@ TEST(FileCache, testFileIsNotRemoveOnlyBecauseTheCacheIsDestroyed) {
 TEST(FileCache, testClearFromDiskRemovesFilesFromDisk) {
     FileCache cache(100);
     MockFileCacheItem* item = new MockFileCacheItem("/bar", "foo", 10);
-    qDebug() << "item path:" << item->path();
     EXPECT_CALL(*item, removeFileFromDisk(QString("/bar/foo"))).Times(1);
     cache.addItem(item);
     cache.clearFromDisk();
