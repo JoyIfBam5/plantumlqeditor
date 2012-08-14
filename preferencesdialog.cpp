@@ -8,7 +8,7 @@
 
 namespace {
 const int TIMEOUT_SCALE = 1000;
-const int CACHE_SCALE = 1000;
+const double CACHE_SCALE = 1024*1024;
 }
 
 PreferencesDialog::PreferencesDialog(FileCache* file_cache, QWidget *parent)
@@ -19,7 +19,7 @@ PreferencesDialog::PreferencesDialog(FileCache* file_cache, QWidget *parent)
     m_ui->setupUi(this);
 
     if (m_fileCache) {
-        m_ui->cacheCurrentSizeLabel->setText(QString("%1 kb").arg(m_fileCache->totalCost() / CACHE_SCALE));
+        m_ui->cacheCurrentSizeLabel->setText(QString("%1 Mb").arg(m_fileCache->totalCost() / CACHE_SCALE, 0, 'f', 2));
     }
     connect(this, SIGNAL(rejected()), this, SLOT(onRejected()));
 }
@@ -188,6 +188,6 @@ void PreferencesDialog::on_clearCacheButton_clicked()
 {
     if (m_fileCache) {
         m_fileCache->clearFromDisk();
-        m_ui->cacheCurrentSizeLabel->setText(QString("%1 kb").arg(m_fileCache->totalCost() / CACHE_SCALE));
+        m_ui->cacheCurrentSizeLabel->setText(QString("%1 Mb").arg(m_fileCache->totalCost() / CACHE_SCALE, 0, 'f', 2));
     }
 }

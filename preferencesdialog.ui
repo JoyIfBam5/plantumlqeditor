@@ -174,7 +174,11 @@
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="cacheMaxSize"/>
+           <widget class="QSpinBox" name="cacheMaxSize">
+            <property name="maximum">
+             <number>1000</number>
+            </property>
+           </widget>
           </item>
           <item>
            <spacer name="horizontalSpacer_3">
