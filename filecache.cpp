@@ -46,6 +46,7 @@ void FileCacheItem::removeFileFromDisk(const QString& some_path) const
         throw FileCacheError();
 
     QDir().remove(path());
+    qDebug() << qPrintable(QString("removed cached file ->   key: %1   cost: %2   path: %3").arg(key(), -10).arg(cost(), -5).arg(path()));
     m_removed = true;
 }
 

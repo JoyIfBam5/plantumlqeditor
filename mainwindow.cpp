@@ -192,6 +192,45 @@ QString MainWindow::makeKeyForDocument(QByteArray current_document)
     return key;
 }
 
+bool MainWindow::refreshFromCache()
+{
+    if (m_useCache) {
+        QByteArray current_document = m_editor->toPlainText().toAscii().trimmed();
+        if (current_document.isEmpty()) {
+            qDebug() << "empty document. skipping...";
+            return true;
+        }
+
+        switch(m_currentImageFormat) {
+        case SvgFormat:
+            m_imageWidget->setMode(PreviewWidget::SvgMode);
+            break;
+        case PngFormat:
+            m_imageWidget->setMode(PreviewWidget::PngMode);
+            break;
+        }
+
+        QString key = makeKeyForDocument(current_document);
+        // try the cache first
+        const FileCacheItem* item = qobject_cast<const FileCacheItem*>(m_cache->item(key));
+        if (item) {
+            QFile file(item->path());
+            if (file.open(QFile::ReadOnly)) {
+                QByteArray cache_image = file.readAll();
+                if (cache_image.size()) {
+                    m_cachedImage = cache_image;
+                    m_imageWidget->load(m_cachedImage);
+                    statusBar()->showMessage(tr("Chache hit: %1").arg(key), STATUSBAR_TIMEOUT);
+                    m_needsRefresh = false;
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
 void MainWindow::refresh(bool forced)
 {
     if (m_process) {
@@ -206,6 +245,10 @@ void MainWindow::refresh(bool forced)
     if (!m_hasValidPaths) {
         qDebug() << "please configure paths for plantuml and java. aborting...";
         statusBar()->showMessage(tr("PlantUML or Java not found. Please set them correctly in the \"Preferences\" dialog!"));
+        return;
+    }
+
+    if (refreshFromCache()) {
         return;
     }
 
@@ -226,22 +269,6 @@ void MainWindow::refresh(bool forced)
     }
 
     QString key = makeKeyForDocument(current_document);
-    if (!forced && m_useCache) {
-        // try the cache first
-        const FileCacheItem* item = qobject_cast<const FileCacheItem*>(m_cache->item(key));
-        if (item) {
-            QFile file(item->path());
-            if (file.open(QFile::ReadOnly)) {
-                QByteArray cache_image = file.readAll();
-                if (cache_image.size()) {
-                    m_cachedImage = cache_image;
-                    m_imageWidget->load(m_cachedImage);
-                    statusBar()->showMessage(tr("Chache hit: %1").arg(key), STATUSBAR_TIMEOUT);
-                    return;
-                }
-            }
-        }
-    }
 
     statusBar()->showMessage(tr("Refreshing..."));
 
@@ -316,7 +343,8 @@ void MainWindow::onAutoRefreshActionToggled(bool state)
 
 void MainWindow::onEditorChanged()
 {
-    m_needsRefresh = true;
+    if (!refreshFromCache()) m_needsRefresh = true;
+
     setWindowModified(true);
 
     enableUndoRedoActions();
@@ -325,7 +353,7 @@ void MainWindow::onEditorChanged()
 void MainWindow::onRefreshActionTriggered()
 {
     m_needsRefresh = true;
-    refresh();
+    refresh(true);
 }
 
 void MainWindow::onPreferencesActionTriggered()

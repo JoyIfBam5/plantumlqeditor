@@ -76,6 +76,8 @@ private:
     void reloadAssistantXml(const QString& path);
     void insertAssistantCode(const QString& code);
 
+    bool refreshFromCache();
+
     QLabel *m_currentImageFormatLabel;
     QLabel *m_autorefreshLabel;
     QLabel *m_exportPathLabel;
