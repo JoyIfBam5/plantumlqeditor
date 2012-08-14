@@ -711,6 +711,8 @@ void MainWindow::createToolBars()
     m_mainToolBar->addAction(m_redoAction);
     m_mainToolBar->addSeparator();
     m_mainToolBar->addAction(m_refreshAction);
+    m_mainToolBar->addSeparator();
+    m_mainToolBar->addAction(m_preferencesAction);
 }
 
 void MainWindow::createStatusBar()
