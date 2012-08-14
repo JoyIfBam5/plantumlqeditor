@@ -128,7 +128,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QGroupBox" name="groupBox_4">
+      <widget class="QGroupBox" name="cacheGroupBox">
        <property name="title">
         <string>Image Cache</string>
        </property>
