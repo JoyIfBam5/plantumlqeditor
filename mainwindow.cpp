@@ -3,6 +3,7 @@
 #include "preferencesdialog.h"
 #include "assistantxmlreader.h"
 #include "settingsconstants.h"
+#include "filecache.h"
 
 #include <QtGui>
 #include <QtSvg>
@@ -65,7 +66,7 @@ QListWidget* newAssistantListWidget(const QSize& icon_size, QWidget* parent)
     return view;
 }
 
-}
+} // namespace {}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -78,6 +79,8 @@ MainWindow::MainWindow(QWidget *parent)
                    .arg("")
                    .arg(qApp->applicationName())
                    );
+
+    m_cache = new FileCache(0, this);
 
     m_recentDocumentsSignalMapper = new QSignalMapper(this);
     connect(m_recentDocumentsSignalMapper, SIGNAL(mapped(QString)),
@@ -179,14 +182,24 @@ void MainWindow::about()
                        );
 }
 
-void MainWindow::refresh()
+QString MainWindow::makeKeyForDocument(QByteArray current_document)
+{
+    QString key = QString("%1.%2")
+            .arg(QString::fromAscii(QCryptographicHash::hash(current_document, QCryptographicHash::Md5).toHex()))
+            .arg(m_imageFormatNames[m_currentImageFormat])
+            ;
+
+    return key;
+}
+
+void MainWindow::refresh(bool forced)
 {
     if (m_process) {
         qDebug() << "still processing previous refresh. skipping...";
         return;
     }
 
-    if (!m_needsRefresh) {
+    if (!m_needsRefresh && !forced) {
         return;
     }
 
@@ -196,12 +209,31 @@ void MainWindow::refresh()
         return;
     }
 
-    QByteArray current_document = m_editor->toPlainText().toAscii();
+    QByteArray current_document = m_editor->toPlainText().toAscii().trimmed();
     if (current_document.isEmpty()) {
         qDebug() << "empty document. skipping...";
         return;
     }
     m_needsRefresh = false;
+
+    QString key = makeKeyForDocument(current_document);
+    if (!forced && m_useCache) {
+        // try the cache first
+        qDebug() << "current doc key:" << key;
+        const FileCacheItem* item = qobject_cast<const FileCacheItem*>(m_cache->item(key));
+        if (item) {
+            QFile file(item->path());
+            if (file.open(QFile::ReadOnly)) {
+                QByteArray cache_image = file.readAll();
+                if (cache_image.size()) {
+                    m_cachedImage = cache_image;
+                    m_imageWidget->load(m_cachedImage);
+                    statusBar()->showMessage(tr("Chache hit: %1").arg(key), STATUSBAR_TIMEOUT);
+                    return;
+                }
+            }
+        }
+    }
 
     statusBar()->showMessage(tr("Refreshing..."));
 
@@ -218,9 +250,11 @@ void MainWindow::refresh()
 
     arguments
             << "-jar" << m_plantUmlPath
-            << QString("-t%1").arg(m_imageFormatNames[m_currentImageFormat])
-            << "-pipe";
+            << QString("-t%1").arg(m_imageFormatNames[m_currentImageFormat]);
+    if (m_useCustomGraphiz) arguments << "-graphizdot" << m_graphizPath;
+    arguments << "-pipe";
 
+    m_lastKey = key;
     m_process = new QProcess(this);
     m_process->start(m_javaPath, arguments);
     if (!m_process->waitForStarted()) {
@@ -240,6 +274,16 @@ void MainWindow::refreshFinished()
     m_imageWidget->load(m_cachedImage);
     m_process->deleteLater();
     m_process = 0;
+
+    if (m_useCache && m_cache) {
+        m_cache->addItem(m_cachedImage, m_lastKey,
+                         [](const QString& path,
+                            const QString& key,
+                            int cost,
+                            const QDateTime& date_time,
+                            QObject* parent
+                            ) { return new FileCacheItem(path, key, cost, date_time, parent); });
+    }
     statusBar()->showMessage(tr("Refreshed"), STATUSBAR_TIMEOUT);
 }
 
@@ -288,7 +332,7 @@ void MainWindow::onRefreshActionTriggered()
 void MainWindow::onPreferencesActionTriggered()
 {
     writeSettings();
-    PreferencesDialog dialog(0, this); // TODO: pass the real FileCache
+    PreferencesDialog dialog(m_cache, this);
     dialog.readSettings();
     dialog.exec();
 
@@ -367,13 +411,52 @@ bool MainWindow::maybeSave()
 
 void MainWindow::readSettings()
 {
+    const QString DEFAULT_CACHE_PATH = QDesktopServices::storageLocation(QDesktopServices::CacheLocation);
+    const QString DEFAULT_JAVA_PATH = "/usr/bin/java";
+    const QString DEFAULT_PLANTUML_PATH = "/usr/share/plantuml/plantuml.jar";
+    const QString DEFAULT_GRAPHIZ_PATH = "/usr/bin/dot";
+
     QSettings settings;
 
     settings.beginGroup(SETTINGS_MAIN_SECTION);
 
-    m_javaPath = settings.value(SETTINGS_CUSTOM_JAVA_PATH, SETTINGS_CUSTOM_JAVA_PATH_DEFAULT).toString();
-    m_plantUmlPath = settings.value(SETTINGS_CUSTOM_PLANTUML_PATH, SETTINGS_CUSTOM_PLANTUML_PATH_DEFAULT).toString();
+    m_useCustomJava = settings.value(SETTINGS_USE_CUSTOM_JAVA, SETTINGS_USE_CUSTOM_JAVA_DEFAULT).toBool();
+    m_customJavaPath = settings.value(SETTINGS_CUSTOM_JAVA_PATH, SETTINGS_CUSTOM_JAVA_PATH_DEFAULT).toString();
+    m_javaPath = m_useCustomJava ? m_customJavaPath : DEFAULT_JAVA_PATH;
+
+    m_useCustomPlantUml = settings.value(SETTINGS_USE_CUSTOM_PLANTUML, SETTINGS_USE_CUSTOM_PLANTUML_DEFAULT).toBool();
+    m_customPlantUmlPath = settings.value(SETTINGS_CUSTOM_PLANTUML_PATH, SETTINGS_CUSTOM_PLANTUML_PATH_DEFAULT).toString();
+    m_plantUmlPath = m_useCustomPlantUml ? m_customPlantUmlPath : DEFAULT_PLANTUML_PATH;
+
+    m_useCustomGraphiz = settings.value(SETTINGS_USE_CUSTOM_GRAPHIZ, SETTINGS_USE_CUSTOM_GRAPHIZ_DEFAULT).toBool();
+    m_customGraphizPath = settings.value(SETTINGS_CUSTOM_GRAPHIZ_PATH, SETTINGS_CUSTOM_GRAPHIZ_PATH_DEFAULT).toString();
+    m_graphizPath = m_useCustomGraphiz ? m_customGraphizPath : DEFAULT_GRAPHIZ_PATH;
+
     checkPaths();
+
+    m_useCache = settings.value(SETTINGS_USE_CACHE, SETTINGS_USE_CACHE_DEFAULT).toBool();
+    m_useCustomCache = settings.value(SETTINGS_USE_CUSTOM_CACHE, SETTINGS_USE_CUSTOM_CACHE_DEFAULT).toBool();
+    m_customCachePath = settings.value(SETTINGS_CUSTOM_CACHE_PATH, DEFAULT_CACHE_PATH).toString();
+    m_cacheMaxSize = settings.value(SETTINGS_CACHE_MAX_SIZE, SETTINGS_CACHE_MAX_SIZE_DEFAULT).toInt();
+    m_cachePath = m_useCustomCache ? m_customCachePath : DEFAULT_CACHE_PATH;
+
+    m_cache->setMaxCost(m_cacheMaxSize);
+    m_cache->setPath(m_cachePath, [](const QString& path,
+                                     const QString& key,
+                                     int cost,
+                                     const QDateTime& date_time,
+                                     QObject* parent
+                                     ) { return new FileCacheItem(path, key, cost, date_time, parent); });
+
+    reloadAssistantXml(settings.value(SETTINGS_ASSISTANT_XML_PATH).toString());
+
+    const bool autorefresh_enabled = settings.value(SETTINGS_AUTOREFRESH_ENABLED, false).toBool();
+    m_autoRefreshAction->setChecked(autorefresh_enabled);
+    m_autoRefreshTimer->setInterval(settings.value(SETTINGS_AUTOREFRESH_TIMEOUT, SETTINGS_AUTOREFRESH_TIMEOUT_DEFAULT).toInt());
+    if (autorefresh_enabled) {
+        m_autoRefreshTimer->start();
+    }
+    m_autorefreshLabel->setEnabled(autorefresh_enabled);
 
     restoreGeometry(settings.value(SETTINGS_GEOMETRY).toByteArray());
     restoreState(settings.value(SETTINGS_WINDOW_STATE).toByteArray());
@@ -386,14 +469,6 @@ void MainWindow::readSettings()
     statusBar()->setVisible(show_statusbar);
     connect(m_showStatusBarAction, SIGNAL(toggled(bool)), statusBar(), SLOT(setVisible(bool)));
 
-    const bool autorefresh_enabled = settings.value(SETTINGS_AUTOREFRESH_ENABLED, false).toBool();
-    m_autoRefreshAction->setChecked(autorefresh_enabled);
-    m_autoRefreshTimer->setInterval(settings.value(SETTINGS_AUTOREFRESH_TIMEOUT, SETTINGS_AUTOREFRESH_TIMEOUT_DEFAULT).toInt());
-    if (autorefresh_enabled) {
-        m_autoRefreshTimer->start();
-    }
-    m_autorefreshLabel->setEnabled(autorefresh_enabled);
-
     m_currentImageFormat = m_imageFormatNames.key(settings.value(SETTINGS_IMAGE_FORMAT, m_imageFormatNames[SvgFormat]).toString());
     if (m_currentImageFormat == SvgFormat) {
         m_svgPreviewAction->setChecked(true);
@@ -401,8 +476,6 @@ void MainWindow::readSettings()
         m_pngPreviewAction->setChecked(true);
     }
     m_currentImageFormatLabel->setText(m_imageFormatNames[m_currentImageFormat].toUpper());
-
-    reloadAssistantXml(settings.value(SETTINGS_ASSISTANT_XML_PATH).toString());
 
     settings.endGroup();
 
@@ -420,15 +493,31 @@ void MainWindow::writeSettings()
     QSettings settings;
 
     settings.beginGroup(SETTINGS_MAIN_SECTION);
+
+    settings.setValue(SETTINGS_USE_CUSTOM_JAVA, m_useCustomJava);
+    settings.setValue(SETTINGS_CUSTOM_JAVA_PATH, m_customJavaPath);
+
+    settings.setValue(SETTINGS_USE_CUSTOM_PLANTUML, m_useCustomPlantUml);
+    settings.setValue(SETTINGS_CUSTOM_PLANTUML_PATH, m_customPlantUmlPath);
+
+    settings.setValue(SETTINGS_USE_CUSTOM_GRAPHIZ, m_useCustomGraphiz);
+    settings.setValue(SETTINGS_CUSTOM_GRAPHIZ_PATH, m_customGraphizPath);
+
+    settings.setValue(SETTINGS_USE_CACHE, m_useCache);
+    settings.setValue(SETTINGS_USE_CUSTOM_CACHE, m_useCustomCache);
+    settings.setValue(SETTINGS_CUSTOM_CACHE_PATH, m_customCachePath);
+    settings.setValue(SETTINGS_CACHE_MAX_SIZE, m_cacheMaxSize);
+
+    settings.setValue(SETTINGS_ASSISTANT_XML_PATH, m_assistantXmlPath);
+
+    settings.setValue(SETTINGS_AUTOREFRESH_TIMEOUT, m_autoRefreshTimer->interval());
+
     settings.setValue(SETTINGS_GEOMETRY, saveGeometry());
     settings.setValue(SETTINGS_WINDOW_STATE, saveState());
     settings.setValue(SETTINGS_SHOW_STATUSBAR, m_showStatusBarAction->isChecked());
     settings.setValue(SETTINGS_AUTOREFRESH_ENABLED, m_autoRefreshAction->isChecked());
     settings.setValue(SETTINGS_IMAGE_FORMAT, m_imageFormatNames[m_currentImageFormat]);
-    settings.setValue(SETTINGS_AUTOREFRESH_TIMEOUT, m_autoRefreshTimer->interval());
-    settings.setValue(SETTINGS_CUSTOM_JAVA_PATH, m_javaPath);
-    settings.setValue(SETTINGS_CUSTOM_PLANTUML_PATH, m_plantUmlPath);
-    settings.setValue(SETTINGS_ASSISTANT_XML_PATH, m_assistantXmlPath);
+
     settings.endGroup();
 
     settings.remove(SETTINGS_RECENT_DOCUMENTS_SECTION);

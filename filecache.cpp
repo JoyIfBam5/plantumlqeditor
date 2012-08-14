@@ -4,9 +4,17 @@
 
 //------------------------------------------------------------------------------
 
+namespace {
+QString cachePathFromPathAndKey(const QString& path, const QString& key) {
+    return QFileInfo(QDir(path), key).absoluteFilePath();
+}
+} // namespace {}
+
+//------------------------------------------------------------------------------
+
 AbstractFileCacheItem::AbstractFileCacheItem(const QString& path, const QString &key, int cost, const QDateTime &date_time, QObject* parent)
     : QObject(parent)
-    , m_path(QFileInfo(QDir(path), key).absoluteFilePath())
+    , m_path(cachePathFromPathAndKey(path, key))
     , m_key(key)
     , m_cost(cost)
     , m_dateTime(date_time)
@@ -14,11 +22,19 @@ AbstractFileCacheItem::AbstractFileCacheItem(const QString& path, const QString 
     qDebug() << qPrintable(QString("new item ->   key: %1   cost: %2   path: %3").arg(key, -10).arg(cost, -5).arg(m_path));
 }
 
+AbstractFileCacheItem::~AbstractFileCacheItem()
+{
+}
+
 //------------------------------------------------------------------------------
 
 FileCacheItem::FileCacheItem(const QString& path, const QString &key, int cost, const QDateTime &date_time, QObject *parent)
     : AbstractFileCacheItem(path, key, cost, date_time, parent)
     , m_removed(false)
+{
+}
+
+FileCacheItem::~FileCacheItem()
 {
 }
 
@@ -102,6 +118,21 @@ void FileCache::addItem(AbstractFileCacheItem *item)
         m_indexByDate.removeAt(0);
         delete tmp_item;
     }
+}
+
+void FileCache::addItem(const QByteArray &data, const QString &key, FileCache::ItemGenerator item_generator)
+{
+    QFile file(cachePathFromPathAndKey(m_path, key));
+    if (!file.open(QIODevice::WriteOnly)) {
+        return;
+    }
+    file.write(data);
+    file.close();
+
+    QFileInfo info(QDir(m_path), key);
+    int cost = info.size();
+    QDateTime date_time = info.lastModified();
+    addItem(item_generator(m_path, key, cost, date_time, this));
 }
 
 void FileCache::clear()

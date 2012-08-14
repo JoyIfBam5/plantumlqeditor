@@ -16,9 +16,10 @@ struct FileCacheError {};
 
 class AbstractFileCacheItem : public QObject
 {
+    Q_OBJECT
 public:
     explicit AbstractFileCacheItem(const QString& path, const QString& key, int cost, const QDateTime& date_time, QObject* parent = 0);
-    virtual ~AbstractFileCacheItem() {}
+    virtual ~AbstractFileCacheItem();
 
     const QString& path() const { return m_path; }
     const QString& key() const { return m_key; }
@@ -41,8 +42,10 @@ private:
 
 class FileCacheItem : public AbstractFileCacheItem
 {
+    Q_OBJECT
 public:
     explicit FileCacheItem(const QString& path, const QString& key, int cost, const QDateTime& date_time, QObject* parent = 0);
+    virtual ~FileCacheItem();
 
 private:
     virtual void removeFileFromDisk(const QString& some_path) const;
@@ -54,6 +57,7 @@ private:
 
 class FileCache : public QObject
 {
+    Q_OBJECT
 public:
     typedef std::function<AbstractFileCacheItem* (const QString&, // path
                                                   const QString&, // key
@@ -63,13 +67,14 @@ public:
                                                   )>  ItemGenerator;
 
     FileCache(int maxCost = 0, QObject* parent = 0);
-    ~FileCache();
+    virtual ~FileCache();
 
     int maxCost() const { return m_maxCost; }
     void setMaxCost(int max_cost);
 
     bool hasItem(const QString& key) const;
     void addItem(AbstractFileCacheItem* item);
+    void addItem(const QByteArray& data, const QString& key, ItemGenerator item_generator);
 
     int totalCost() const { return m_totalCost; }
 
@@ -80,7 +85,6 @@ public:
     void clear();
     void clearFromDisk();
 
-    bool setPath(const QString& path);
     bool setPath(const QString& path, ItemGenerator item_generator);
     const QString& path() const { return m_path; }
 

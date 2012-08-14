@@ -15,6 +15,7 @@ class QSignalMapper;
 class QToolBox;
 class QListWidget;
 class QListWidgetItem;
+class FileCache;
 
 class MainWindow : public QMainWindow
 {
@@ -31,7 +32,7 @@ public slots:
 
 private slots:
     void about();
-    void refresh();
+    void refresh(bool forced = false);
     void refreshFinished();
     void changeImageFormat();
     void undo();
@@ -60,6 +61,7 @@ private:
     void writeSettings();
     bool saveDocument(const QString& name);
     void exportImage(const QString& name);
+    QString makeKeyForDocument(QByteArray current_document);
 
     void createActions();
     void createMenus();
@@ -80,6 +82,7 @@ private:
 
     QString m_documentPath;
     QString m_exportPath;
+    QString m_lastKey;
     QByteArray m_cachedImage;
 
     QString m_assistantXmlPath;
@@ -88,8 +91,23 @@ private:
     QStringList m_recentDocumentsList;
     QSignalMapper *m_recentDocumentsSignalMapper;
 
+    bool m_useCustomJava;
+    bool m_useCustomPlantUml;
+    bool m_useCustomGraphiz;
+    bool m_useCache;
+    bool m_useCustomCache;
+    int m_cacheMaxSize;
+
     QString m_javaPath;
     QString m_plantUmlPath;
+    QString m_graphizPath;
+    QString m_cachePath;
+
+    QString m_customJavaPath;
+    QString m_customPlantUmlPath;
+    QString m_customGraphizPath;
+    QString m_customCachePath;
+
     bool m_hasValidPaths;
 
     QProcess *m_process;
@@ -135,6 +153,8 @@ private:
     QMenu *m_helpMenu;
     QAction *m_aboutAction;
     QAction *m_aboutQtAction;
+
+    FileCache* m_cache;
 };
 
 #endif // MAINWINDOW_H
