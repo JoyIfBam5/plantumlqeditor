@@ -89,7 +89,7 @@ private:
     QSignalMapper *m_recentDocumentsSignalMapper;
 
     QString m_javaPath;
-    QString m_platUmlPath;
+    QString m_plantUmlPath;
     bool m_hasValidPaths;
 
     QProcess *m_process;

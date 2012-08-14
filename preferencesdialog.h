@@ -7,33 +7,28 @@ namespace Ui {
 class PreferencesDialog;
 }
 
+class FileCache;
+
 class PreferencesDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit PreferencesDialog(QWidget *parent = 0);
+    explicit PreferencesDialog(FileCache* file_cache, QWidget *parent = 0);
     ~PreferencesDialog();
 
-    void setJavaPath(const QString& path);
-    QString javaPath() const;
-
-    void setPlantUmlPath(const QString& path);
-    QString plantUmlPath() const;
-
-    void setAutoRefreshTimeout(int timeout);
-    int autoRefreshTimeout() const;
-
-    void setAssistantXml(const QString& path);
-    QString assistantXml() const;
+    void readSettings();
+    void writeSettings();
 
 private slots:
-    void on_javaPathButton_clicked();
-    void on_plantUmlButton_clicked();
+    void onRejected();
+    void on_customJavaPathButton_clicked();
+    void on_customPlantUmlButton_clicked();
     void on_assistantXmlButton_clicked();
 
 private:
     Ui::PreferencesDialog *m_ui;
+    FileCache* m_fileCache;
 };
 
 #endif // PREFERENCESDIALOG_H

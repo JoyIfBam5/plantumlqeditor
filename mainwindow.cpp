@@ -2,6 +2,7 @@
 #include "previewwidget.h"
 #include "preferencesdialog.h"
 #include "assistantxmlreader.h"
+#include "settingsconstants.h"
 
 #include <QtGui>
 #include <QtSvg>
@@ -13,23 +14,6 @@ const QString TITLE_FORMAT_STRING = "%1[*] - %2";
 const QString EXPORT_TO_MENU_FORMAT_STRING = QObject::tr("Export to %1");
 const QString EXPORT_TO_LABEL_FORMAT_STRING = QObject::tr("Export to: %1");
 const QString AUTOREFRESH_STATUS_LABEL = QObject::tr("Auto-refresh");
-
-const QString SETTINGS_MAIN_SECTION = "MainWindow";
-const QString SETTINGS_GEOMETRY = "geometry";
-const QString SETTINGS_WINDOW_STATE = "window_state";
-const QString SETTINGS_SHOW_STATUSBAR = "show_statusbar";
-const QString SETTINGS_AUTOREFRESH_ENABLED = "autorefresh_enabled";
-const QString SETTINGS_AUTOREFRESH_TIMEOUT = "autorefresh_timeout";
-const int SETTINGS_AUTOREFRESH_TIMEOUT_DEFAULT = 5000; // in miliseconds
-const QString SETTINGS_IMAGE_FORMAT = "image_format";
-const QString SETTINGS_JAVA_PATH = "java";
-const QString SETTINGS_JAVA_PATH_DEFAULT = "/usr/bin/java";
-const QString SETTINGS_PLATUML_PATH = "plantuml";
-const QString SETTINGS_PLATUML_PATH_DEFAULT = "/usr/bin/plantuml";
-const QString SETTINGS_ASSISTANT_XML_PATH = "assistant_xml";
-
-const QString SETTINGS_RECENT_DOCUMENTS_SECTION = "recent_documents";
-const QString SETTINGS_RECENT_DOCUMENTS_DOCUMENT = "document";
 
 const QSize ASSISTANT_ICON_SIZE(128, 128);
 
@@ -233,7 +217,7 @@ void MainWindow::refresh()
     }
 
     arguments
-            << "-jar" << m_platUmlPath
+            << "-jar" << m_plantUmlPath
             << QString("-t%1").arg(m_imageFormatNames[m_currentImageFormat])
             << "-pipe";
 
@@ -303,21 +287,14 @@ void MainWindow::onRefreshActionTriggered()
 
 void MainWindow::onPreferencesActionTriggered()
 {
-    const int TIMEOUT_SCALE = 1000;
-    PreferencesDialog dialog(this);
-    dialog.setJavaPath(m_javaPath);
-    dialog.setPlantUmlPath(m_platUmlPath);
-    dialog.setAutoRefreshTimeout(m_autoRefreshTimer->interval() / TIMEOUT_SCALE);
-    dialog.setAssistantXml(m_assistantXmlPath);
+    writeSettings();
+    PreferencesDialog dialog(0, this); // TODO: pass the real FileCache
+    dialog.readSettings();
     dialog.exec();
 
     if (dialog.result() == QDialog::Accepted) {
-        m_javaPath = dialog.javaPath();
-        m_platUmlPath = dialog.plantUmlPath();
-        m_autoRefreshTimer->setInterval(dialog.autoRefreshTimeout() * TIMEOUT_SCALE);
-        checkPaths();
-
-        reloadAssistantXml(dialog.assistantXml());
+        dialog.writeSettings();
+        readSettings();
     }
 }
 
@@ -395,7 +372,7 @@ void MainWindow::readSettings()
     settings.beginGroup(SETTINGS_MAIN_SECTION);
 
     m_javaPath = settings.value(SETTINGS_JAVA_PATH, SETTINGS_JAVA_PATH_DEFAULT).toString();
-    m_platUmlPath = settings.value(SETTINGS_PLATUML_PATH, SETTINGS_PLATUML_PATH_DEFAULT).toString();
+    m_plantUmlPath = settings.value(SETTINGS_PLATUML_PATH, SETTINGS_PLATUML_PATH_DEFAULT).toString();
     checkPaths();
 
     restoreGeometry(settings.value(SETTINGS_GEOMETRY).toByteArray());
@@ -450,7 +427,7 @@ void MainWindow::writeSettings()
     settings.setValue(SETTINGS_IMAGE_FORMAT, m_imageFormatNames[m_currentImageFormat]);
     settings.setValue(SETTINGS_AUTOREFRESH_TIMEOUT, m_autoRefreshTimer->interval());
     settings.setValue(SETTINGS_JAVA_PATH, m_javaPath);
-    settings.setValue(SETTINGS_PLATUML_PATH, m_platUmlPath);
+    settings.setValue(SETTINGS_PLATUML_PATH, m_plantUmlPath);
     settings.setValue(SETTINGS_ASSISTANT_XML_PATH, m_assistantXmlPath);
     settings.endGroup();
 
@@ -753,7 +730,7 @@ void MainWindow::enableUndoRedoActions()
 void MainWindow::checkPaths()
 {
     m_hasValidPaths = QFileInfo(m_javaPath).exists() &&
-            QFileInfo(m_platUmlPath).exists();
+            QFileInfo(m_plantUmlPath).exists();
 }
 
 void MainWindow::updateRecentDocumentsList(const QString &path)

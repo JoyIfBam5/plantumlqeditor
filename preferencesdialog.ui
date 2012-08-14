@@ -39,10 +39,10 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="javaPathEdit"/>
+           <widget class="QLineEdit" name="customJavaPathEdit"/>
           </item>
           <item>
-           <widget class="QToolButton" name="javaPathButton">
+           <widget class="QToolButton" name="customJavaPathButton">
             <property name="text">
              <string>...</string>
             </property>
@@ -76,10 +76,10 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="plantUmlEdit"/>
+           <widget class="QLineEdit" name="customPlantUmlEdit"/>
           </item>
           <item>
-           <widget class="QToolButton" name="plantUmlButton">
+           <widget class="QToolButton" name="customPlantUmlButton">
             <property name="text">
              <string>...</string>
             </property>
@@ -113,10 +113,10 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="graphizEdit"/>
+           <widget class="QLineEdit" name="customGraphizEdit"/>
           </item>
           <item>
-           <widget class="QToolButton" name="graphizButton">
+           <widget class="QToolButton" name="customGraphizButton">
             <property name="text">
              <string>...</string>
             </property>
@@ -153,10 +153,10 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="cacheEdit"/>
+           <widget class="QLineEdit" name="customCacheEdit"/>
           </item>
           <item>
-           <widget class="QToolButton" name="cacheButton">
+           <widget class="QToolButton" name="customCacheButton">
             <property name="text">
              <string>...</string>
             </property>

@@ -19,7 +19,8 @@ HEADERS  += mainwindow.h \
     previewwidget.h \
     preferencesdialog.h \
     assistantxmlreader.h \
-    filecache.h
+    filecache.h \
+    settingsconstants.h
 
 FORMS += \
     preferencesdialog.ui

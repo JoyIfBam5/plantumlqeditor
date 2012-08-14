@@ -2,11 +2,21 @@
 #include "ui_preferencesdialog.h"
 #include <QFileDialog>
 
-PreferencesDialog::PreferencesDialog(QWidget *parent) :
-    QDialog(parent),
-    m_ui(new Ui::PreferencesDialog)
+#include "settingsconstants.h"
+#include <QSettings>
+
+namespace {
+const int TIMEOUT_SCALE = 1000;
+}
+
+PreferencesDialog::PreferencesDialog(FileCache* file_cache, QWidget *parent)
+    : QDialog(parent)
+    , m_ui(new Ui::PreferencesDialog)
+    , m_fileCache(file_cache)
 {
     m_ui->setupUi(this);
+
+    connect(this, SIGNAL(rejected()), this, SLOT(onRejected()));
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -14,62 +24,65 @@ PreferencesDialog::~PreferencesDialog()
     delete m_ui;
 }
 
-void PreferencesDialog::setJavaPath(const QString &path)
+void PreferencesDialog::readSettings()
 {
-    m_ui->javaPathEdit->setText(path);
+    QSettings settings;
+
+    settings.beginGroup(SETTINGS_MAIN_SECTION);
+
+    m_ui->customJavaPathEdit->setText(settings.value(SETTINGS_JAVA_PATH).toString());
+    m_ui->customPlantUmlEdit->setText(settings.value(SETTINGS_PLATUML_PATH).toString());
+    m_ui->autoRefreshSpin->setValue(settings.value(SETTINGS_AUTOREFRESH_TIMEOUT).toInt() / TIMEOUT_SCALE);
+    m_ui->assistantXmlEdit->setText(settings.value(SETTINGS_ASSISTANT_XML_PATH).toString());
+
+    settings.endGroup();
+
+    settings.beginGroup(SETTINGS_PREFERENCES_SECTION);
+    restoreGeometry(settings.value(SETTINGS_GEOMETRY).toByteArray());
+    settings.endGroup();
 }
 
-QString PreferencesDialog::javaPath() const
+void PreferencesDialog::writeSettings()
 {
-    return m_ui->javaPathEdit->text();
+    QSettings settings;
+
+    settings.beginGroup(SETTINGS_MAIN_SECTION);
+
+    settings.setValue(SETTINGS_JAVA_PATH, m_ui->customJavaPathEdit->text());
+    settings.setValue(SETTINGS_PLATUML_PATH, m_ui->customPlantUmlEdit->text());
+    settings.setValue(SETTINGS_AUTOREFRESH_TIMEOUT, m_ui->autoRefreshSpin->value() * TIMEOUT_SCALE);
+    settings.setValue(SETTINGS_ASSISTANT_XML_PATH, m_ui->assistantXmlEdit->text());
+    settings.endGroup();
+
+    settings.beginGroup(SETTINGS_PREFERENCES_SECTION);
+    settings.setValue(SETTINGS_GEOMETRY, saveGeometry());
+    settings.endGroup();
 }
 
-void PreferencesDialog::setPlantUmlPath(const QString &path)
+void PreferencesDialog::onRejected()
 {
-    m_ui->plantUmlEdit->setText(path);
+    QSettings settings;
+    settings.beginGroup(SETTINGS_PREFERENCES_SECTION);
+    settings.setValue(SETTINGS_GEOMETRY, saveGeometry());
+    settings.endGroup();
 }
 
-QString PreferencesDialog::plantUmlPath() const
-{
-    return m_ui->plantUmlEdit->text();
-}
-
-void PreferencesDialog::setAutoRefreshTimeout(int timeout)
-{
-    m_ui->autoRefreshSpin->setValue(timeout);
-}
-
-int PreferencesDialog::autoRefreshTimeout() const
-{
-    return m_ui->autoRefreshSpin->value();
-}
-
-void PreferencesDialog::setAssistantXml(const QString &path)
-{
-    m_ui->assistantXmlEdit->setText(path);
-}
-
-QString PreferencesDialog::assistantXml() const
-{
-    return m_ui->assistantXmlEdit->text();
-}
-
-void PreferencesDialog::on_javaPathButton_clicked()
+void PreferencesDialog::on_customJavaPathButton_clicked()
 {
     QString file_name = QFileDialog::getOpenFileName(this,
                                                     tr("Select Java executable"),
-                                                    m_ui->javaPathEdit->text());
+                                                    m_ui->customJavaPathEdit->text());
     if (!file_name.isEmpty())
-        m_ui->javaPathEdit->setText(file_name);
+        m_ui->customJavaPathEdit->setText(file_name);
 }
 
-void PreferencesDialog::on_plantUmlButton_clicked()
+void PreferencesDialog::on_customPlantUmlButton_clicked()
 {
     QString file_name = QFileDialog::getOpenFileName(this,
                                                     tr("Select PlantUML jar"),
-                                                    m_ui->plantUmlEdit->text());
+                                                    m_ui->customPlantUmlEdit->text());
     if (!file_name.isEmpty())
-        m_ui->plantUmlEdit->setText(file_name);
+        m_ui->customPlantUmlEdit->setText(file_name);
 }
 
 void PreferencesDialog::on_assistantXmlButton_clicked()
