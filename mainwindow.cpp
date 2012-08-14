@@ -216,10 +216,18 @@ void MainWindow::refresh(bool forced)
     }
     m_needsRefresh = false;
 
+    switch(m_currentImageFormat) {
+    case SvgFormat:
+        m_imageWidget->setMode(PreviewWidget::SvgMode);
+        break;
+    case PngFormat:
+        m_imageWidget->setMode(PreviewWidget::PngMode);
+        break;
+    }
+
     QString key = makeKeyForDocument(current_document);
     if (!forced && m_useCache) {
         // try the cache first
-        qDebug() << "current doc key:" << key;
         const FileCacheItem* item = qobject_cast<const FileCacheItem*>(m_cache->item(key));
         if (item) {
             QFile file(item->path());
@@ -238,15 +246,6 @@ void MainWindow::refresh(bool forced)
     statusBar()->showMessage(tr("Refreshing..."));
 
     QStringList arguments;
-
-    switch(m_currentImageFormat) {
-    case SvgFormat:
-        m_imageWidget->setMode(PreviewWidget::SvgMode);
-        break;
-    case PngFormat:
-        m_imageWidget->setMode(PreviewWidget::PngMode);
-        break;
-    }
 
     arguments
             << "-jar" << m_plantUmlPath
