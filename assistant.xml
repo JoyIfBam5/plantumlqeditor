@@ -1,4 +1,4 @@
-<assistants>
+﻿<assistants>
     <assistant name="Class Diagrams">
         <item name="Relations"><![CDATA[
             Class01 <|-- Class02
@@ -37,6 +37,255 @@
 
             Alice -> Bob: Another authentication Request
             Alice <-- Bob: another authentication Response
+            ]]>
+        </item>
+        <item name="Declaring a participant"><![CDATA[
+            actor Bob #red
+            ' The only difference between actor and participant is the drawing
+            participant Alice
+            participant "I have a really\nlong name" as L #99FF99
+            /' You can also declare:
+               participant L as "I have a really\nlong name"  #99FF99
+              '/
+
+            Alice->Bob: Authentication Request
+            Bob->Alice: Authentication Response
+            Bob->L: Log transaction
+            ]]>
+        </item>
+        <item name="Message to Self"><![CDATA[
+            Alice->Alice: This is a signal to self.\nIt also demonstrates\nmultiline \ntext
+            ]]>
+        </item>
+        <item name="Change arrow style"><![CDATA[
+            Bob -> Alice
+            Bob ->> Alice
+            Bob -\ Alice
+            Bob \\- Alice
+            Bob //-- Alice
+
+            Bob ->o Alice
+            Bob o\\-- Alice
+            ]]>
+        </item>
+        <item name="Message sequence numbering"><![CDATA[
+            autonumber
+            Bob -> Alice : Authentication Request
+            Bob <- Alice : Authentication Response
+            ]]>
+        </item>
+        <item name="Message sequence numbering with a start"><![CDATA[
+            autonumber
+            Bob -> Alice : Authentication Request
+            Bob <- Alice : Authentication Response
+
+            autonumber 15
+            Bob -> Alice : Another authentication Request
+            Bob <- Alice : Another authentication Response
+
+            autonumber 40 10
+            Bob -> Alice : Yet another authentication Request
+            Bob <- Alice : Yet another authentication Response
+            ]]>
+        </item>
+        <item name="Formatted message sequence numbering"><![CDATA[
+            autonumber "<b>[000]"
+            Bob -> Alice : Authentication Request
+            Bob <- Alice : Authentication Response
+
+            autonumber 15 "<b>(<u>##</u>)"
+            Bob -> Alice : Another authentication Request
+            Bob <- Alice : Another authentication Response
+
+            autonumber 40 10 "<font color=red><b>Message 0  "
+            Bob -> Alice : Yet another authentication Request
+            Bob <- Alice : Yet another authentication Response
+            ]]>
+        </item>
+        <item name="Title"><![CDATA[
+            title Simple communication example
+
+            Alice -> Bob: Authentication Request
+            Bob --> Alice: Authentication Response
+            ]]>
+        </item>
+        <item name="Grouping message"><![CDATA[
+            Alice -> Bob: Authentication Request
+
+            alt successful case
+
+                Bob -> Alice: Authentication Accepted
+
+            else some kind of failure
+
+                Bob -> Alice: Authentication Failure
+                group My own label
+                    Alice -> Log : Log attack start
+                    loop 1000 times
+                        Alice -> Bob: DNS Attack
+                    end
+                    Alice -> Log : Log attack end
+                end
+
+            else Another type of failure
+
+               Bob -> Alice: Please repeat
+
+            end
+            ]]>
+        </item>
+        <item name="Notes on messages"><![CDATA[
+            Alice->Bob : hello
+            note left: this is a first note
+
+            Bob->Alice : ok
+            note right: this is another note
+
+            Bob->Bob : I am thinking
+            note left
+                a note
+                can also be defined
+                on several lines
+            end note
+            ]]>
+        </item>
+        <item name="Some other notes"><![CDATA[
+            participant Alice
+            participant Bob
+            note left of Alice #aqua
+                This is displayed
+                left of Alice.
+            end note
+
+            note right of Alice: This is displayed right of Alice.
+
+            note over Alice: This is displayed over Alice.
+
+            note over Alice, Bob #FFAAAA: This is displayed\n over Bob and Alice.
+
+            note over Bob, Alice
+                This is yet another
+                example of
+                a long note.
+            end note
+            ]]>
+        </item>
+        <item name="Divider"><![CDATA[
+            == Initialisation ==
+
+            Alice -> Bob: Authentication Request
+            Bob --> Alice: Authentication Response
+
+            == Repetition ==
+
+            Alice -> Bob: Another authentication Request
+            Alice <-- Bob: another authentication Response
+            ]]>
+        </item>
+        <item name="Space"><![CDATA[
+            Alice -> Bob: message 1
+            Bob --> Alice: ok
+            |||
+            Alice -> Bob: message 2
+            Bob --> Alice: ok
+            ||45||
+            Alice -> Bob: message 3
+            Bob --> Alice: ok
+            ]]>
+        </item>
+        <item name="Lifeline activation and destruction"><![CDATA[
+            participant User
+
+            User -> A: DoWork
+            activate A
+
+            A -> B: << createRequest >>
+            activate B
+
+            B -> C: DoWork
+            activate C
+            C --> B: WorkDone
+            destroy C
+
+            B --> A: RequestCreated
+            deactivate B
+
+            A -> User: Done
+            deactivate A
+            ]]>
+        </item>
+        <item name="Nested lifeline activation and destruction"><![CDATA[
+            participant User
+
+            User -> A: DoWork
+            activate A #FFBBBB
+
+            A -> A: Internal call
+            activate A #DarkSalmon
+
+            A -> B: << createRequest >>
+            activate B
+
+            B --> A: RequestCreated
+            deactivate B
+            deactivate A
+            A -> User: Done
+            deactivate A
+            ]]>
+        </item>
+        <item name="Participant creation"><![CDATA[
+            Bob -> Alice : hello
+
+            create Other
+            Alice -> Other : new
+
+            create String
+            Alice -> String
+            note right : You can also put notes!
+
+            Alice --> Bob : ok
+            ]]>
+        </item>
+        <item name="Incomming and outgoing messages"><![CDATA[
+            [-> A: DoWork
+
+            activate A
+
+            A -> A: Internal call
+            activate A
+
+            A ->] : << createRequest >>
+
+            A<--] : RequestCreated
+            deactivate A
+            [<- A: Done
+            deactivate A
+            ]]>
+        </item>
+        <item name="Stereotypes and spots"><![CDATA[
+            participant "Famous Bob" as Bob << Generated >>
+            participant Alice << (C,#ADD1B2) Testable >>
+
+            Bob->Alice: First message
+            ]]>
+        </item>
+        <item name="Participants englober"><![CDATA[
+            box "Internal Service" #LightBlue
+                participant Bob
+                participant Alice
+            end box
+            participant Other
+
+            Bob -> Alice : hello
+            Alice -> Other : hello
+            ]]>
+        </item>
+        <item name="Removing footer"><![CDATA[
+            hide footbox
+            title Footer removed
+
+            Alice -> Bob: Authentication Request
+            Bob --> Alice: Authentication Response
             ]]>
         </item>
     </assistant>
