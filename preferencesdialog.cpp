@@ -6,6 +6,7 @@
 #include "settingsconstants.h"
 #include <QFileDialog>
 #include <QSettings>
+#include <QDesktopServices>
 
 PreferencesDialog::PreferencesDialog(FileCache* file_cache, QWidget *parent)
     : QDialog(parent)
@@ -13,6 +14,11 @@ PreferencesDialog::PreferencesDialog(FileCache* file_cache, QWidget *parent)
     , m_fileCache(file_cache)
 {
     m_ui->setupUi(this);
+
+    m_ui->defaultJavaRadio->setText(tr("Default (%1)").arg(DEFAULT_JAVA_PATH));
+    m_ui->defaultPlatUmlRadio->setText(tr("Default (%1)").arg(DEFAULT_PLANTUML_PATH));
+    m_ui->defaultGraphizRadio->setText(tr("Default (%1)").arg(DEFAULT_GRAPHIZ_PATH));
+    m_ui->defaultCacheRadio->setText(tr("Default (%1)").arg(QDesktopServices::storageLocation(QDesktopServices::CacheLocation)));
 
     if (m_fileCache) {
         m_ui->cacheCurrentSizeLabel->setText(cacheSizeToString(m_fileCache->totalCost()));

@@ -454,9 +454,6 @@ bool MainWindow::maybeSave()
 void MainWindow::readSettings()
 {
     const QString DEFAULT_CACHE_PATH = QDesktopServices::storageLocation(QDesktopServices::CacheLocation);
-    const QString DEFAULT_JAVA_PATH = "/usr/bin/java";
-    const QString DEFAULT_PLANTUML_PATH = "/usr/share/plantuml/plantuml.jar";
-    const QString DEFAULT_GRAPHIZ_PATH = "/usr/bin/dot";
 
     QSettings settings;
 

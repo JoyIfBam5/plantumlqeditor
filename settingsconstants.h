@@ -3,6 +3,10 @@
 
 #include <QString>
 
+const QString DEFAULT_JAVA_PATH = "/usr/bin/java";
+const QString DEFAULT_PLANTUML_PATH = "/usr/share/plantuml/plantuml.jar";
+const QString DEFAULT_GRAPHIZ_PATH = "/usr/bin/dot";
+
 const QString SETTINGS_MAIN_SECTION = "MainWindow";
 
 const QString SETTINGS_GEOMETRY = "geometry";
