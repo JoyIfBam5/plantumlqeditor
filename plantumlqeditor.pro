@@ -28,7 +28,18 @@ FORMS += \
     preferencesdialog.ui
 
 OTHER_FILES += \
+    assistant.svg \
     assistant.xml \
     plantumlqeditor-mime.xml \
     plantumlqeditor.desktop \
-    README.mime
+    README.mime \
+    README \
+    AUTHORS \
+    COPYING \
+    icon.svg \
+    icon*.png \
+    docs/* \
+    icons/*
+
+RESOURCES += \
+    plantumlqeditor.qrc

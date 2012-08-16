@@ -815,6 +815,7 @@ void MainWindow::createToolBars()
     m_mainToolBar->addAction(m_saveDocumentAction);
     m_mainToolBar->addAction(m_saveAsDocumentAction);
     m_mainToolBar->addSeparator();
+    m_mainToolBar->addAction(m_showAssistantDockAction);
     m_mainToolBar->addAction(m_showEditorDockAction);
     m_mainToolBar->addSeparator();
     m_mainToolBar->addAction(m_undoAction);
@@ -841,7 +842,7 @@ void MainWindow::createDockWindows()
 
     m_showEditorDockAction = dock->toggleViewAction();
     m_showEditorDockAction->setIconVisibleInMenu(false);
-    m_showEditorDockAction->setStatusTip("Show or hide the document editor");
+    m_showEditorDockAction->setStatusTip(tr("Show or hide the document editor dock"));
     m_showEditorDockAction->setIcon(QIcon::fromTheme("accessories-text-editor"));
 
     dock = new QDockWidget(tr("Assistant"), this);
@@ -851,6 +852,9 @@ void MainWindow::createDockWindows()
     addDockWidget(Qt::LeftDockWidgetArea, dock);
 
     m_showAssistantDockAction = dock->toggleViewAction();
+    m_showAssistantDockAction->setIconVisibleInMenu(false);
+    m_showAssistantDockAction->setStatusTip(tr("Show or hide the assistant dock"));
+    m_showAssistantDockAction->setIcon(QIcon(":/assistant.svg"));
 }
 
 void MainWindow::enableUndoRedoActions()
