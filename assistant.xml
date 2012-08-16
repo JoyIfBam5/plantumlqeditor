@@ -30,6 +30,7 @@
             ]]>
         </item>
     </assistant>
+
     <assistant name="Sequence Diagrams">
         <item name="Simple sequence"><![CDATA[
             Alice -> Bob: Authentication Request
@@ -287,6 +288,121 @@
             Alice -> Bob: Authentication Request
             Bob --> Alice: Authentication Response
             ]]>
+        </item>
+    </assistant>
+
+    <assistant name="Use Case Diagrams">
+    <item name="Usecases"><![CDATA[
+        (First usecase)
+        (Another usecase) as (UC2)
+        usecase UC3
+        usecase (Last\nusecase) as UC4
+        ]]>
+    </item>
+    <item name="Actors"><![CDATA[
+        :First Actor:
+        :Another\nactor: as Men2
+        actor Men3
+        actor :Last actor: as Men4
+        ]]>
+    </item>
+    <item name="Basic example"><![CDATA[
+        User -> (Start)
+        User --> (Use the application) : A small label
+
+        :Main Admin: ---> (Use the application) : This is\nyet another\nlabel
+        ]]>
+    </item>
+    <item name="Extension"><![CDATA[
+        :Main Admin: as Admin
+        (Use the application) as (Use)
+
+        User <|-- Admin
+        (Start) <|-- (Use)
+        ]]>
+    </item>
+    <item name="Using notes"><![CDATA[
+        :Main Admin: as Admin
+        (Use the application) as (Use)
+
+        User -> (Start)
+        User --> (Use)
+
+        Admin ---> (Use)
+
+        note right of Admin : This is an example.
+
+        note right of (Use)
+          A note can also
+          be on several lines
+        end note
+
+        note "This note is connected\nto several objects." as N2
+        (Start) .. N2
+        N2 .. (Use)
+        ]]>
+    </item>
+    <item name="Stereotypes"><![CDATA[
+        User << Human >>
+        :Main Database: as MySql << Application >>
+        (Start) << One Shot >>
+        (Use the application) as (Use) << Main >>
+
+        User -> (Start)
+        User --> (Use)
+
+        MySql --> (Use)
+        ]]>
+    </item>
+    <item name="Changing arrows direction 1"><![CDATA[
+        :user: --> (Use case 1)
+        :user: -> (Use case 2)
+        ]]>
+    </item>
+    <item name="Changing arrows direction 2"><![CDATA[
+        (Use case 1) <.. :user:
+        (Use case 2) <- :user:
+        ]]>
+    </item>
+    <item name="Changing arrows direction 3"><![CDATA[
+        :user: -left-> (dummyLeft)
+        :user: -right-> (dummyRight)
+        :user: -up-> (dummyUp)
+        :user: -down-> (dummyDown)
+        ]]>
+    </item>
+    <item name="Title"><![CDATA[
+        title Simple <b>Usecase</b>\nwith one actor
+
+        usecase (Use the application) as (Use)
+        User -> (Use)
+        ]]>
+    </item>
+    <item name="Top to bottom direction"><![CDATA[
+        'default
+        top to bottom direction
+        user1 --> (Usecase 1)
+        user2 --> (Usecase 2)
+        ]]>
+    </item>
+    <item name="Left to right direction"><![CDATA[
+        left to right direction
+        user1 --> (Usecase 1)
+        user2 --> (Usecase 2)
+        ]]>
+    </item>
+    <item name="Complete example"><![CDATA[
+        left to right direction
+        skinparam packageStyle rect
+        actor customer
+        actor clerk
+        package checkout {
+          customer -- (checkout)
+          (checkout) .> (payment) : <>
+          (help) .> (checkout) : <>
+          (checkout) -- clerk
+        }
+        ]]>
         </item>
     </assistant>
 </assistants>
