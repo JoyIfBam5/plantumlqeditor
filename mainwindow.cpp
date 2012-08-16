@@ -422,6 +422,11 @@ void MainWindow::onRecentDocumentsActionTriggered(const QString &path)
 
 void MainWindow::onAssistanItemClicked(QListWidgetItem *item)
 {
+    m_assistantCodePreview->setPlainText(item->data(Qt::UserRole).toString());
+}
+
+void MainWindow::onAssistanItemDoubleClicked(QListWidgetItem *item)
+{
     insertAssistantCode(item->data(Qt::UserRole).toString());
 }
 
@@ -876,6 +881,23 @@ void MainWindow::createDockWindows()
     m_showAssistantDockAction->setIconVisibleInMenu(false);
     m_showAssistantDockAction->setStatusTip(tr("Show or hide the assistant dock"));
     m_showAssistantDockAction->setIcon(QIcon(":/assistant.svg"));
+
+    dock = new QDockWidget(tr("Assistant Info"), this);
+    QWidget* widget = new QWidget(dock);
+    m_assistantNotes = new QLabel(widget);
+    m_assistantNotes->setText(tr("Code:"));
+    m_assistantCodePreview = new QTextEdit(widget);
+    m_assistantCodePreview->setReadOnly(true);
+    QBoxLayout* assistant_info_layout = new QBoxLayout(QBoxLayout::TopToBottom, widget);
+    assistant_info_layout->addWidget(m_assistantNotes);
+    assistant_info_layout->addWidget(m_assistantCodePreview);
+    widget->setLayout(assistant_info_layout);
+    dock->setWidget(widget);
+    dock->setObjectName("assistant_info");
+    addDockWidget(Qt::LeftDockWidgetArea, dock);
+
+    m_showAssistantPreviewDockAction = dock->toggleViewAction();
+    m_showAssistantPreviewDockAction->setStatusTip(tr("Show or hide the assistan preview dock"));
 }
 
 void MainWindow::enableUndoRedoActions()
@@ -960,6 +982,8 @@ void MainWindow::reloadAssistantXml(const QString &path)
                     listWidgetItem->setData(Qt::UserRole, assistantItem->data());
                 }
                 m_assistantToolBox->addItem(view, assistant->name());
+                connect(view, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
+                        this, SLOT(onAssistanItemDoubleClicked(QListWidgetItem*)));
                 connect(view, SIGNAL(itemClicked(QListWidgetItem*)),
                         this, SLOT(onAssistanItemClicked(QListWidgetItem*)));
                 m_assistantWidgets << view;

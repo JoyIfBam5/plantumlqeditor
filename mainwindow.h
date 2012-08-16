@@ -50,6 +50,7 @@ private slots:
     void onClearRecentDocumentsActionTriggered();
     void onRecentDocumentsActionTriggered(const QString& path);
     void onAssistanItemClicked(QListWidgetItem* item);
+    void onAssistanItemDoubleClicked(QListWidgetItem* item);
 
 private:
     enum ImageFormat { SvgFormat, PngFormat };
@@ -124,6 +125,8 @@ private:
     PreviewWidget *m_imageWidget;
 
     QToolBox *m_assistantToolBox;
+    QLabel *m_assistantNotes;
+    QTextEdit *m_assistantCodePreview;
 
     QToolBar *m_mainToolBar;
 
@@ -146,6 +149,7 @@ private:
 
     QMenu *m_settingsMenu;
     QAction *m_showAssistantDockAction;
+    QAction *m_showAssistantPreviewDockAction;
     QAction *m_showEditorDockAction;
     QAction *m_showMainToolbarAction;
     QAction *m_showStatusBarAction;

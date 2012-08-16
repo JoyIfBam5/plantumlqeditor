@@ -17,9 +17,13 @@ public:
     const QString& data() const { return m_data; }
     const QString& icon() const { return m_icon; }
 
+    void setNotes(const QString& notes) { m_notes = notes; }
+    const QString& notes() const { return m_notes; }
+
 private:
     QString m_name;
     QString m_data;
+    QString m_notes;
     QString m_icon;
 };
 
