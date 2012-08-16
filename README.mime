@@ -1,0 +1,46 @@
+Associate .plantuml files with the editor
+=========================================
+
+> __Note:__
+The following steps will register the association only for the current user.
+Replace _user_ with _system_ to make the registration system wide.
+
+> __Note:__
+It is advisable to enable the _cache_ to speed up the start process. This way,
+event for complex diagrams, the start should be fast.
+
+These steps allows you to create a new MIME type and associate the editor with
+the _.plantuml_ files. In this way, you can effectively transform the PlantUML
+QEditor into a _.plantuml_ viewer.
+
+Copy the binary somewhere on the path (ex: /usr/bin, $HOME/bin, etc):
+
+~~~~~
+$ cp plantumlqeditor $HOME/bin
+~~~~~
+
+Register the mime type:
+
+~~~~~
+$ xdg-mime install --mode user plantumlqeditor-mime.xml
+~~~~~
+
+Register the icons:
+
+~~~~~
+$ xdg-icon-resource install --context mimetypes --mode user --size 22 icon22.png application-x-plantumlqeditor
+$ xdg-icon-resource install --context mimetypes --mode user --size 48 icon48.png application-x-plantumlqeditor
+$ xdg-icon-resource install --context mimetypes --mode user --size 32 icon32.png application-x-plantumlqeditor
+$ xdg-icon-resource install --context mimetypes --mode user --size 64 icon64.png application-x-plantumlqeditor
+~~~~~
+
+Register the _.desktop_ file:
+
+~~~~~
+$ xdg-desktop-menu install --novendor --mode user plantumlqeditor.desktop
+~~~~~
+
+Open now _Dolphin_ or another file browser and navigate to a directory having
+some _.plantuml_ files. The _.plantuml_ files should have their own icon and
+should have a type of _PlantUML QEditor source file_. Double-click/click the
+file and _PlantUML QEditor_ should start and load the file.

@@ -4,7 +4,7 @@ QMAKE_CXXFLAGS += -std=c++0x
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = plant-uml-editor
+TARGET = plantumlqeditor
 
 TEMPLATE = app
 
@@ -28,4 +28,7 @@ FORMS += \
     preferencesdialog.ui
 
 OTHER_FILES += \
-    assistant.xml
+    assistant.xml \
+    plantumlqeditor-mime.xml \
+    plantumlqeditor.desktop \
+    README.mime
