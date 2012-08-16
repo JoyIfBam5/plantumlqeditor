@@ -17,6 +17,9 @@ const QString SETTINGS_AUTOREFRESH_ENABLED = "autorefresh_enabled";
 const QString SETTINGS_AUTOREFRESH_TIMEOUT = "autorefresh_timeout";
 const int     SETTINGS_AUTOREFRESH_TIMEOUT_DEFAULT = 5000; // in miliseconds
 
+const QString SETTINGS_AUTOSAVE_IMAGE_ENABLED = "autosave_image_enabled";
+const bool    SETTINGS_AUTOSAVE_IMAGE_ENABLED_DEFAULT = false;
+
 const QString SETTINGS_IMAGE_FORMAT = "image_format";
 
 const QString SETTINGS_USE_CUSTOM_JAVA = "use_custom_java";

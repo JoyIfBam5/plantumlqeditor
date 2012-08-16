@@ -27,7 +27,8 @@ bool AssistantXmlReader::readFile(const QString &path)
     } else {
         m_iconDir.clear();
     }
-    qDebug() << "icon path:" << m_iconDir;
+    qDebug() << "using assistant:          " << path;
+    qDebug() << "using assistant icon path:" << m_iconDir;
 
     QFile file(path);
     if (!file.open(QFile::ReadOnly | QFile::Text)) {

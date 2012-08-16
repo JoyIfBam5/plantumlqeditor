@@ -110,13 +110,13 @@ MainWindow::MainWindow(QWidget *parent)
     m_cacheSizeLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
     m_cacheSizeLabel->setMinimumWidth(font_metrics.width(QString(CACHE_SIZE_FORMAT_STRING.arg("#.## Mb"))));
 
-    m_autorefreshLabel = new QLabel(this);
-    m_autorefreshLabel->setText(AUTOREFRESH_STATUS_LABEL);
-    m_autorefreshLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+    m_autoRefreshLabel = new QLabel(this);
+    m_autoRefreshLabel->setText(AUTOREFRESH_STATUS_LABEL);
+    m_autoRefreshLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
 
     statusBar()->addPermanentWidget(m_exportPathLabel);
     statusBar()->addPermanentWidget(m_cacheSizeLabel);
-    statusBar()->addPermanentWidget(m_autorefreshLabel);
+    statusBar()->addPermanentWidget(m_autoRefreshLabel);
     statusBar()->addPermanentWidget(m_currentImageFormatLabel);
 
     createDockWindows();
@@ -353,7 +353,7 @@ void MainWindow::onAutoRefreshActionToggled(bool state)
     } else {
         m_autoRefreshTimer->stop();
     }
-    m_autorefreshLabel->setEnabled(state);
+    m_autoRefreshLabel->setEnabled(state);
 }
 
 void MainWindow::onEditorChanged()
@@ -495,7 +495,9 @@ void MainWindow::readSettings()
     if (autorefresh_enabled) {
         m_autoRefreshTimer->start();
     }
-    m_autorefreshLabel->setEnabled(autorefresh_enabled);
+    m_autoRefreshLabel->setEnabled(autorefresh_enabled);
+
+    m_autoSaveImageAction->setChecked(settings.value(SETTINGS_AUTOSAVE_IMAGE_ENABLED, SETTINGS_AUTOSAVE_IMAGE_ENABLED_DEFAULT).toBool());
 
     restoreGeometry(settings.value(SETTINGS_GEOMETRY).toByteArray());
     restoreState(settings.value(SETTINGS_WINDOW_STATE).toByteArray());
@@ -557,6 +559,7 @@ void MainWindow::writeSettings()
     settings.setValue(SETTINGS_WINDOW_STATE, saveState());
     settings.setValue(SETTINGS_SHOW_STATUSBAR, m_showStatusBarAction->isChecked());
     settings.setValue(SETTINGS_AUTOREFRESH_ENABLED, m_autoRefreshAction->isChecked());
+    settings.setValue(SETTINGS_AUTOSAVE_IMAGE_ENABLED, m_autoSaveImageAction->isChecked());
     settings.setValue(SETTINGS_IMAGE_FORMAT, m_imageFormatNames[m_currentImageFormat]);
 
     settings.endGroup();
@@ -607,32 +610,49 @@ void MainWindow::openDocument(const QString &name)
 
 bool MainWindow::saveDocument(const QString &name)
 {
-    QString tmp_name = name;
-    if (tmp_name.isEmpty()) {
-        tmp_name = QFileDialog::getSaveFileName(this,
+    QString file_path = name;
+    if (file_path.isEmpty()) {
+        file_path = QFileDialog::getSaveFileName(this,
                                                 tr("Select where to store the document"),
                                                 m_documentPath,
                                                 "PlantUML (*.plantuml);; All Files (*.*)"
                                                 );
-        if (tmp_name.isEmpty()) {
+        if (file_path.isEmpty()) {
             return false;
         }
     }
 
-    qDebug() << "saving document in:" << tmp_name;
-    QFile file(tmp_name);
+    qDebug() << "saving document in:" << file_path;
+    QFile file(file_path);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         return false;
     }
     file.write(m_editor->toPlainText().toAscii());
-    setWindowModified(false);
-    m_documentPath = tmp_name;
+    file.close();
+    m_documentPath = file_path;
     setWindowTitle(TITLE_FORMAT_STRING
-                   .arg(QFileInfo(tmp_name).fileName())
+                   .arg(QFileInfo(file_path).fileName())
                    .arg(qApp->applicationName())
                    );
-    statusBar()->showMessage(tr("Document save in %1").arg(tmp_name), STATUSBAR_TIMEOUT);
-    updateRecentDocumentsList(tmp_name);
+    statusBar()->showMessage(tr("Document save in %1").arg(file_path), STATUSBAR_TIMEOUT);
+    updateRecentDocumentsList(file_path);
+
+    if (m_autoSaveImageAction->isChecked()) {
+        QFileInfo info(file_path);
+        QString image_path = QString("%1/%2.%3")
+                .arg(info.absolutePath())
+                .arg(info.baseName())
+                .arg(m_imageFormatNames[m_currentImageFormat])
+                ;
+        qDebug() << "saving image in:   " << image_path;
+        QFile image(image_path);
+        if (!image.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            return false;
+        }
+        image.write(m_cachedImage);
+        image.close();
+    }
+    setWindowModified(false);
     return true;
 }
 
@@ -739,6 +759,9 @@ void MainWindow::createActions()
 
     m_autoRefreshAction = new QAction(tr("Auto-Refresh"), this);
     m_autoRefreshAction->setCheckable(true);
+
+    m_autoSaveImageAction = new QAction(tr("Auto-Save image"), this);
+    m_autoSaveImageAction->setCheckable(true);
     connect(m_autoRefreshAction, SIGNAL(toggled(bool)), this, SLOT(onAutoRefreshActionToggled(bool)));
 
     // Settings menu
@@ -793,6 +816,7 @@ void MainWindow::createMenus()
     m_settingsMenu->addAction(m_svgPreviewAction);
     m_settingsMenu->addSeparator();
     m_settingsMenu->addAction(m_autoRefreshAction);
+    m_settingsMenu->addAction(m_autoSaveImageAction);
     m_settingsMenu->addSeparator();
     m_settingsMenu->addAction(m_preferencesAction);
 
@@ -921,9 +945,8 @@ void MainWindow::reloadAssistantXml(const QString &path)
         m_assistantWidgets.clear();
 
         if (m_assistantXmlPath.isEmpty()) {
-            qDebug() << "no assistant defined";
+            qDebug() << "No assistant defined.";
         } else {
-            qDebug() << "using assistant" << m_assistantXmlPath;
             AssistantXmlReader reader;
             reader.readFile(m_assistantXmlPath);
             for (int i = 0; i < reader.size(); ++i) {

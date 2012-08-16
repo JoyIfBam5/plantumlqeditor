@@ -19,7 +19,7 @@ AbstractFileCacheItem::AbstractFileCacheItem(const QString& path, const QString 
     , m_cost(cost)
     , m_dateTime(date_time)
 {
-    qDebug() << qPrintable(QString("new item ->   key: %1   cost: %2   path: %3").arg(key, -10).arg(cost, -5).arg(m_path));
+    qDebug() << qPrintable(QString("new file cache item ->   key: %1   cost: %2   path: %3").arg(key, -10).arg(cost, -5).arg(m_path));
 }
 
 AbstractFileCacheItem::~AbstractFileCacheItem()

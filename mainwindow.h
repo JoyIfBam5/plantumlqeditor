@@ -80,7 +80,7 @@ private:
     void updateCacheSizeInfo();
 
     QLabel *m_currentImageFormatLabel;
-    QLabel *m_autorefreshLabel;
+    QLabel *m_autoRefreshLabel;
     QLabel *m_exportPathLabel;
     QLabel *m_cacheSizeLabel;
 
@@ -152,6 +152,7 @@ private:
     QAction *m_pngPreviewAction;
     QAction *m_svgPreviewAction;
     QAction *m_autoRefreshAction;
+    QAction *m_autoSaveImageAction;
     QAction *m_preferencesAction;
 
     QMenu *m_helpMenu;
