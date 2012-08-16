@@ -8,3 +8,4 @@ Icon=plantumlqeditor
 Name=PlantUML QEditor
 
 Categories=Development;
+MimeType=application/x-plantumlqeditor;
