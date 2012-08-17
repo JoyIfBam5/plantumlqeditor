@@ -1,0 +1,3 @@
+[submodule "thirdparty/qt-solutions"]
+	path = thirdparty/qt-solutions
+	url = git://gitorious.org/qt-solutions/qt-solutions.git/
