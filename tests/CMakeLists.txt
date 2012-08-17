@@ -22,8 +22,7 @@ add_executable(test-assistantxmlreader
 
 target_link_libraries(test-assistantxmlreader
     ${GMOCK_LIBRARY}
-    ${QT_QTCORE_LIBRARY}
-    plantuml_qeditor
+    plantumlqeditorlib
 )
 
 register_test(test-assistantxmlreader)
@@ -39,8 +38,7 @@ add_executable(test-filecache
 
 target_link_libraries(test-filecache
     ${GMOCK_LIBRARY}
-    ${QT_QTCORE_LIBRARY}
-    plantuml_qeditor
+    plantumlqeditorlib
 )
 
 register_test(test-filecache)
@@ -56,8 +54,7 @@ add_executable(test-recentdocuments
 
 target_link_libraries(test-recentdocuments
     ${GMOCK_LIBRARY}
-    ${QT_QTCORE_LIBRARY}
-    plantuml_qeditor
+    plantumlqeditorlib
 )
 
 register_test(test-recentdocuments)

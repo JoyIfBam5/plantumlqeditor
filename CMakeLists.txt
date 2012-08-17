@@ -28,11 +28,12 @@ message ("Qt4 Headers:       ${QT_INCLUDES}")
 
 include_directories (${CMAKE_SOURCE_DIR})
 include_directories (${QT_INCLUDES})
+include_directories (${CMAKE_SOURCE_DIR}/thirdparty/qtsingleapplication/src)
 
 #-------------------------------------------------------------------------------
 # add to SOURCES files that will be tested with GMock and GTest
 #-------------------------------------------------------------------------------
-set (SOURCES
+set (SOURCES_LIB
     assistantxmlreader.cpp
     filecache.cpp
     recentdocuments.cpp
@@ -42,18 +43,52 @@ set (SOURCES
 # add to EXTRA_HEADERS all headers but those for classes for QObject derived
 # classes
 #-------------------------------------------------------------------------------
-set (EXTRA_HEADERS
+set (EXTRA_HEADERS_LIB
 )
 
-add_library (plantuml_qeditor
-    ${SOURCES}
-    ${EXTRA_HEADERS}
+add_library (plantumlqeditorlib
+    ${SOURCES_LIB}
+    ${EXTRA_HEADERS_LIB}
 )
 
-target_link_libraries (plantuml_qeditor
+target_link_libraries (plantumlqeditorlib
     ${QT_QTCORE_LIBRARY}
     ${QT_QTGUI_LIBRARY}
 )
 
 add_subdirectory (thirdparty)
 add_subdirectory (tests)
+
+#-------------------------------------------------------------------------------
+# the real app
+#-------------------------------------------------------------------------------
+set (SOURCES_APP
+    main.cpp
+    mainwindow.cpp
+    preferencesdialog.cpp
+    previewwidget.cpp
+    utils.cpp
+)
+
+set (EXTRA_HEADERS_APP
+    utils.h
+)
+
+set(FORMS_APP
+    preferencesdialog.ui
+)
+qt4_wrap_ui(SOURCES_FORMS_APP ${FORMS_APP})
+
+include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+
+add_executable(plantumlqeditor
+    ${SOURCES_APP}
+    ${SOURCES_FORMS_APP}
+    ${EXTRA_HEADERS_APP}
+)
+
+target_link_libraries(plantumlqeditor
+    ${QT_QTSVG_LIBRARY}
+    plantumlqeditorlib
+    qtsingleapplicationlib
+)
