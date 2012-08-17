@@ -10,6 +10,9 @@
 #include <QtSvg>
 
 namespace {
+const int ASSISTANT_ITEM_DATA_ROLE = Qt::UserRole;
+const int ASSISTANT_ITEM_NOTES_ROLE = Qt::UserRole + 1;
+
 const int MAX_RECENT_DOCUMENT_SIZE = 10;
 const int STATUSBAR_TIMEOUT = 3000; // in miliseconds
 const QString TITLE_FORMAT_STRING = "%1[*] - %2";
@@ -422,7 +425,11 @@ void MainWindow::onRecentDocumentsActionTriggered(const QString &path)
 
 void MainWindow::onAssistanItemClicked(QListWidgetItem *item)
 {
-    m_assistantCodePreview->setPlainText(item->data(Qt::UserRole).toString());
+    QString notes = item->data(ASSISTANT_ITEM_NOTES_ROLE).toString();
+    m_assistantPreviewNotes->setText(notes.isEmpty() ?
+                                         tr("Code:") :
+                                         tr("Notes:<br>%1<br>Code:").arg(notes));
+    m_assistantCodePreview->setPlainText(item->data(ASSISTANT_ITEM_DATA_ROLE).toString());
 }
 
 void MainWindow::onAssistanItemDoubleClicked(QListWidgetItem *item)
@@ -884,12 +891,12 @@ void MainWindow::createDockWindows()
 
     dock = new QDockWidget(tr("Assistant Info"), this);
     QWidget* widget = new QWidget(dock);
-    m_assistantNotes = new QLabel(widget);
-    m_assistantNotes->setText(tr("Code:"));
+    m_assistantPreviewNotes = new QLabel(widget);
+    m_assistantPreviewNotes->setText(tr("Code:"));
     m_assistantCodePreview = new QTextEdit(widget);
     m_assistantCodePreview->setReadOnly(true);
     QBoxLayout* assistant_info_layout = new QBoxLayout(QBoxLayout::TopToBottom, widget);
-    assistant_info_layout->addWidget(m_assistantNotes);
+    assistant_info_layout->addWidget(m_assistantPreviewNotes);
     assistant_info_layout->addWidget(m_assistantCodePreview);
     widget->setLayout(assistant_info_layout);
     dock->setWidget(widget);
@@ -979,7 +986,8 @@ void MainWindow::reloadAssistantXml(const QString &path)
                     QListWidgetItem* listWidgetItem =
                             new QListWidgetItem(iconFromSvg(ASSISTANT_ICON_SIZE, assistantItem->icon()),
                                                 assistantItem->name(), view);
-                    listWidgetItem->setData(Qt::UserRole, assistantItem->data());
+                    listWidgetItem->setData(ASSISTANT_ITEM_DATA_ROLE, assistantItem->data());
+                    listWidgetItem->setData(ASSISTANT_ITEM_NOTES_ROLE, assistantItem->notes());
                 }
                 m_assistantToolBox->addItem(view, assistant->name());
                 connect(view, SIGNAL(itemDoubleClicked(QListWidgetItem*)),

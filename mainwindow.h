@@ -125,7 +125,7 @@ private:
     PreviewWidget *m_imageWidget;
 
     QToolBox *m_assistantToolBox;
-    QLabel *m_assistantNotes;
+    QLabel *m_assistantPreviewNotes;
     QTextEdit *m_assistantCodePreview;
 
     QToolBar *m_mainToolBar;

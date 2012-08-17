@@ -20,9 +20,12 @@
 
             Class05 --> "1" Class06
             ]]>
-            <note>To add a label, use ":", followed by the text of the label.
-
-For cardinality, you can use double-quotes "" on each side of the relation.</note>
+            <notes><![CDATA[
+            <ul>
+            <li>To add a label, use <b>":"</b>, followed by the text of the label.
+            <li>For cardinality, you can use double-quotes <b>""</b> on each side of the relation.
+            </ul>
+            ]]></notes>
         </item>
         <item name="Directed labels on relations"><![CDATA[
             class Car

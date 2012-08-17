@@ -218,8 +218,11 @@ void AssistantXmlReader::readAssistantItemElement(Assistant *assistant)
         }
     }
 
-    AssistantItem* item = new AssistantItem(name, data.join(QChar('\n')), m_iconDir + "/" + assistant->name(), assistant);
-    item->setNotes(notes.join(QChar('\n')));
+    AssistantItem* item = new AssistantItem(name,
+                                            data.join(QChar('\n')),
+                                            notes.join(QChar('\n')),
+                                            m_iconDir + "/" + assistant->name(),
+                                            assistant);
     assistant->append(item);
 }
 
@@ -243,12 +246,13 @@ QString AssistantXmlReader::readAssistantItemNotes()
     return notes;
 }
 
-AssistantItem::AssistantItem(const QString &name, const QString &data, const QString& icon_prefix, QObject *parent)
+AssistantItem::AssistantItem(const QString &name, const QString &data, const QString& notes, const QString& icon_prefix, QObject *parent)
     : QObject(parent)
     , m_name(name)
     , m_data(data)
+    , m_notes(notes)
+    , m_icon(icon_prefix + " - " + name + ".svg")
 {
-    m_icon = icon_prefix + " - " + name + ".svg";
 }
 
 

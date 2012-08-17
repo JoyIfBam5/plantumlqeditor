@@ -11,20 +11,18 @@ class AssistantItem : public QObject
 {
     Q_OBJECT
 public:
-    explicit AssistantItem(const QString& name, const QString& data, const QString& icon_prefix, QObject *parent = 0);
+    explicit AssistantItem(const QString& name, const QString& data, const QString& notes, const QString& icon_prefix, QObject *parent = 0);
 
     const QString& name() const { return m_name; }
     const QString& data() const { return m_data; }
     const QString& icon() const { return m_icon; }
-
-    void setNotes(const QString& notes) { m_notes = notes; }
     const QString& notes() const { return m_notes; }
 
 private:
-    QString m_name;
-    QString m_data;
-    QString m_notes;
-    QString m_icon;
+    const QString m_name;
+    const QString m_data;
+    const QString m_notes;
+    const QString m_icon;
 };
 
 class Assistant : public QObject
