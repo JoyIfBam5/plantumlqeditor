@@ -1,28 +1,81 @@
 #include "assistantxmlreader.h"
 #include <gtest/gtest.h>
 
-struct AssistantXmlReaderTestData {
+struct TrimLeftTestData {
+    QString input;
+    QString expectedOutput;
+    int expectedReturn;
+};
+
+class TrimLeftTest : public ::testing::TestWithParam<TrimLeftTestData> {};
+
+TEST_P(TrimLeftTest, testTrimLeft) {
+    TrimLeftTestData data = GetParam();
+    EXPECT_EQ(data.expectedReturn, AssistantXmlReader::trimLeft(data.input));
+    EXPECT_EQ(data.expectedOutput, data.input);
+}
+
+INSTANTIATE_TEST_CASE_P(Test,
+                        TrimLeftTest,
+                        ::testing::Values(
+  (TrimLeftTestData) { "", "", 0 } // null string
+, (TrimLeftTestData) { "  ", "", 2 } // trim to nothing
+, (TrimLeftTestData) { "foo", "foo", 0 } // nothing to trim
+, (TrimLeftTestData) { "foo  ", "foo  ", 0 } // right side unaffected
+, (TrimLeftTestData) { "foo  bar", "foo  bar", 0 } // middle unaffected
+, (TrimLeftTestData) { "   foo", "foo", 3 } // left space remove
+, (TrimLeftTestData) { " \t foo", "foo", 3 } // tabs count as one
+, (TrimLeftTestData) { "   foo  bar ", "foo  bar ", 3 } // complete test
+));
+
+struct TrimRightTestData {
     QString input;
     QString expectedOutput;
 };
 
-class AssistantXmlReaderTest : public ::testing::TestWithParam<AssistantXmlReaderTestData> {};
+class TrimRightTest : public ::testing::TestWithParam<TrimRightTestData> {};
 
-TEST_P(AssistantXmlReaderTest, testRemoveWhitespace) {
-    AssistantXmlReaderTestData data = GetParam();
+TEST_P(TrimRightTest, testTrimRight) {
+    TrimRightTestData data = GetParam();
+    AssistantXmlReader::trimRight(data.input);
+    EXPECT_EQ(data.expectedOutput, data.input);
+}
+
+INSTANTIATE_TEST_CASE_P(Test,
+                        TrimRightTest,
+                        ::testing::Values(
+  (TrimRightTestData) { "", "" } // null string
+, (TrimRightTestData) { "  ", "" } // trim to nothing
+, (TrimRightTestData) { "foo", "foo" } // nothing to trim
+, (TrimRightTestData) { "foo  ", "foo" } // right space removed
+, (TrimRightTestData) { "foo  bar", "foo  bar" } // middle unaffected
+, (TrimRightTestData) { "   foo", "   foo" } // left space unaffected
+, (TrimRightTestData) { "   foo  bar ", "   foo  bar" } // complete test
+));
+
+struct RemoveWhitespaceTestData {
+    QString input;
+    QString expectedOutput;
+};
+
+class RemoveWhitespaceTest : public ::testing::TestWithParam<RemoveWhitespaceTestData> {};
+
+TEST_P(RemoveWhitespaceTest, testRemoveWhitespace) {
+    RemoveWhitespaceTestData data = GetParam();
     EXPECT_EQ(data.expectedOutput, AssistantXmlReader::removeWhiteSpace(data.input));
 }
 
 INSTANTIATE_TEST_CASE_P(Test,
-                        AssistantXmlReaderTest,
+                        RemoveWhitespaceTest,
                         ::testing::Values(
-  (AssistantXmlReaderTestData) { "", "" } // null string
-, (AssistantXmlReaderTestData) { "foo", "foo" } // 1 line
-, (AssistantXmlReaderTestData) { "foo\nbar", "foo\nbar"} // 2 lines
-, (AssistantXmlReaderTestData) { "\n\nfoo\nbar", "foo\nbar"} // empty lines at start of the block are removed
-, (AssistantXmlReaderTestData) { "foo\nbar\n\n", "foo\nbar"} // empty lines at end of the block are removed
-, (AssistantXmlReaderTestData) { "\n\nfoo\nbar\n\n", "foo\nbar"} // empty lines at start and at end of the block are removed
-, (AssistantXmlReaderTestData) { "foo\n\n\nbar", "foo\n\n\nbar"} // empty lines in the middle of the block are kept
-, (AssistantXmlReaderTestData) { "  foo\n   bar", "foo\nbar"} // whitespace at the start of the line is removed
-, (AssistantXmlReaderTestData) { "foo    \nbar ", "foo\nbar"} // whitespace at the end of the line is removed
+  (RemoveWhitespaceTestData) { "", "" } // null string
+, (RemoveWhitespaceTestData) { "foo", "foo" } // 1 line
+, (RemoveWhitespaceTestData) { "foo\nbar", "foo\nbar"} // 2 lines
+, (RemoveWhitespaceTestData) { "\n\n\nfoo\nbar", "foo\nbar"} // empty lines at start of the block are removed
+, (RemoveWhitespaceTestData) { "foo\nbar\n\n", "foo\nbar"} // empty lines at end of the block are removed
+, (RemoveWhitespaceTestData) { "\n\nfoo\nbar\n\n", "foo\nbar"} // empty lines at start and at end of the block are removed
+, (RemoveWhitespaceTestData) { "foo\n\n\nbar", "foo\n\n\nbar"} // empty lines in the middle of the block are kept
+, (RemoveWhitespaceTestData) { "  foo\n    bar\n  baz", "foo\n  bar\nbaz"} // whitespace at the start of the line is removed, but identation is kept
+, (RemoveWhitespaceTestData) { "foo    \nbar ", "foo\nbar"} // whitespace at the end of the line is removed
+, (RemoveWhitespaceTestData) { "\n\n\n  \n\t\t\n\n  foo  \n    bar   \n  baz   \n\n   \n", "foo\n  bar\nbaz"} // more whitespace on the right
 ));

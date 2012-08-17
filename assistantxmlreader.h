@@ -58,6 +58,8 @@ public:
     const QString& iconDir() const { return m_iconDir; }
 
     static QString removeWhiteSpace(const QString& data);
+    static int trimLeft(QString& data); //< returns the number of chars trimmed
+    static void trimRight(QString& data);
 
 private:
     void readRootElement();

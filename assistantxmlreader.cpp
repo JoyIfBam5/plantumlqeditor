@@ -71,15 +71,23 @@ QString AssistantXmlReader::removeWhiteSpace(const QString &data)
 
     QStringList lines = data.split('\n');
 
-    for (int i = 0; i < lines.size(); ++i) {
-        lines[i] = lines[i].trimmed();
-    }
-
+    int left_space = 0;
     int index_begin = 0;
     int index_end = lines.size() - 1;
 
-    while (lines[index_begin].isEmpty() && index_begin < lines.size()) {
+    while (index_begin < lines.size()) {
+        int space = trimLeft(lines[index_begin]);
+        if (!lines[index_begin].isEmpty()) {
+            left_space = space;
+            break;
+        }
         ++index_begin;
+    }
+    trimRight(lines[index_begin]);
+
+    for (int index = index_begin + 1; index < lines.size(); ++index) {
+        lines[index].remove(0, left_space);
+        trimRight(lines[index]);
     }
 
     while (lines[index_end].isEmpty() && index_end > index_begin) {
@@ -90,6 +98,30 @@ QString AssistantXmlReader::removeWhiteSpace(const QString &data)
         lines = lines.mid(index_begin, index_end - index_begin + 1);
     }
     return lines.join(QChar('\n'));
+}
+
+int AssistantXmlReader::trimLeft(QString &data)
+{
+    for (int index = 0; index < data.size(); ++index) {
+        if (!data[index].isSpace()) {
+            data.remove(0, index);
+            return index;
+        }
+    }
+    int ret = data.size();
+    data.clear();
+    return ret;
+}
+
+void AssistantXmlReader::trimRight(QString &data)
+{
+    for (int index = data.size() - 1; index >= 0; --index) {
+        if (!data[index].isSpace()) {
+            data.chop(data.size() - 1 - index);
+            return;
+        }
+    }
+    data.clear();
 }
 
 void AssistantXmlReader::readRootElement()
