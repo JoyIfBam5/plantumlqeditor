@@ -36,6 +36,7 @@ OTHER_FILES += \
     assistant.xml \
     plantumlqeditor-mime.xml \
     plantumlqeditor.desktop \
+    plantumlqeditor-singleinstance.desktop \
     README.mime \
     README \
     AUTHORS \

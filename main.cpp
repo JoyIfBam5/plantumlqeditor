@@ -11,7 +11,7 @@ const char* ORGANIZATION_DOMAIN = "borco.net";
 const char* OPTION_HELP_SHORT = "-h";
 const char* OPTION_HELP_LONG = "--help";
 const char* OPTION_SINGLE_INSTANCE_SHORT = "-s";
-const char* OPTION_SINGLE_INSTANCE_LONG = "--single_instance";
+const char* OPTION_SINGLE_INSTANCE_LONG = "--single-instance";
 
 void displayHelp(const char* app_name) {
     qDebug() << qPrintable(QString("Usage: %1 [options] [FILE]").arg(QFileInfo(app_name).fileName()));

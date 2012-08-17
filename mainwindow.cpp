@@ -600,7 +600,7 @@ void MainWindow::openDocument(const QString &name)
     if (tmp_name.isEmpty() || QFileInfo(tmp_name).exists() == false) {
         tmp_name = QFileDialog::getOpenFileName(this,
                                                 tr("Select a file to open"),
-                                                QString(),
+                                                QString(tmp_name.isEmpty() ? "" : tmp_name),
                                                 "PlantUML (*.plantuml);; All Files (*.*)"
                                                 );
         if (tmp_name.isEmpty()) {

@@ -38,6 +38,7 @@ Register the _.desktop_ file:
 
 ~~~~~
 $ xdg-desktop-menu install --novendor --mode user plantumlqeditor.desktop
+$ xdg-desktop-menu install --novendor --mode user plantumlqeditor-singleinstance.desktop
 ~~~~~
 
 Open now _Dolphin_ or another file browser and navigate to a directory having

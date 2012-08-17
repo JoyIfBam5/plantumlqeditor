@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Type=Application
+
+Exec=plantumlqeditor --single-instance
+Icon=plantumlqeditor
+
+Name=PlantUML QEditor (Single-Instance)
+
+Categories=Development;
+MimeType=application/x-plantumlqeditor;
