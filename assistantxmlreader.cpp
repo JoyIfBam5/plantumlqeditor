@@ -78,12 +78,12 @@ QString AssistantXmlReader::removeWhiteSpace(const QString &data)
     while (index_begin < lines.size()) {
         int space = trimLeft(lines[index_begin]);
         if (!lines[index_begin].isEmpty()) {
+            trimRight(lines[index_begin]);
             left_space = space;
             break;
         }
         ++index_begin;
     }
-    trimRight(lines[index_begin]);
 
     for (int index = index_begin + 1; index < lines.size(); ++index) {
         lines[index].remove(0, left_space);
@@ -189,16 +189,58 @@ void AssistantXmlReader::readAssistantElement()
 void AssistantXmlReader::readAssistantItemElement(Assistant *assistant)
 {
     QString name = m_reader.attributes().value("name").toString();
+    QStringList data;
+    QStringList notes;
 
-    // we assume the data is stored in the next child CDATA
     m_reader.readNext();
-    QString data = removeWhiteSpace(m_reader.text().toString());
-    m_reader.readNext();
+    while (!m_reader.atEnd()) {
+        if (m_reader.isEndElement()) {
+            m_reader.readNext();
+            break;
+        }
 
-    AssistantItem* item = new AssistantItem(name, data, m_iconDir + "/" + assistant->name(), assistant);
+        if (m_reader.isStartElement()) {
+            if (m_reader.name() == "notes") {
+                QString tmp = removeWhiteSpace(readAssistantItemNotes());
+                if (!tmp.isEmpty()) {
+                    notes << tmp;
+                }
+            } else {
+                skipUnknownElement();
+            }
+        } else {
+            QString tmp = m_reader.text().toString();
+            tmp = removeWhiteSpace(tmp);
+            if (!tmp.isEmpty()) {
+                data << tmp;
+            }
+            m_reader.readNext();
+        }
+    }
+
+    AssistantItem* item = new AssistantItem(name, data.join(QChar('\n')), m_iconDir + "/" + assistant->name(), assistant);
+    item->setNotes(notes.join(QChar('\n')));
     assistant->append(item);
+}
 
-    skipUnknownElement();
+QString AssistantXmlReader::readAssistantItemNotes()
+{
+    QString notes;
+    m_reader.readNext();
+    while (!m_reader.atEnd()) {
+        if (m_reader.isEndElement()) {
+            m_reader.readNext();
+            break;
+        }
+
+        if (m_reader.isStartElement()) {
+            skipUnknownElement();
+        } else {
+            notes += m_reader.text().toString();
+            m_reader.readNext();
+        }
+    }
+    return notes;
 }
 
 AssistantItem::AssistantItem(const QString &name, const QString &data, const QString& icon_prefix, QObject *parent)

@@ -66,6 +66,7 @@ private:
     void skipUnknownElement();
     void readAssistantElement();
     void readAssistantItemElement(Assistant *assistant);
+    QString readAssistantItemNotes();
 
     QString m_iconDir;
     QList<Assistant*> m_items;
