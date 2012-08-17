@@ -4,6 +4,7 @@
 #include "assistantxmlreader.h"
 #include "settingsconstants.h"
 #include "filecache.h"
+#include "recentdocuments.h"
 #include "utils.h"
 
 #include <QtGui>
@@ -86,9 +87,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_cache = new FileCache(0, this);
 
-    m_recentDocumentsSignalMapper = new QSignalMapper(this);
-    connect(m_recentDocumentsSignalMapper, SIGNAL(mapped(QString)),
-            this, SLOT(onRecentDocumentsActionTriggered(QString)));
+    m_recentDocuments = new RecentDocuments(MAX_RECENT_DOCUMENT_SIZE, this);
+    connect(m_recentDocuments, SIGNAL(recentDocument(QString)), this, SLOT(onRecentDocumentsActionTriggered(QString)));
 
     m_autoRefreshTimer = new QTimer(this);
     connect(m_autoRefreshTimer, SIGNAL(timeout()), this, SLOT(refresh()));
@@ -412,12 +412,6 @@ void MainWindow::onExportAsImageActionTriggered()
     exportImage("");
 }
 
-void MainWindow::onClearRecentDocumentsActionTriggered()
-{
-    m_recentDocumentsList.clear();
-    updateRecentDocumentsMenu();
-}
-
 void MainWindow::onRecentDocumentsActionTriggered(const QString &path)
 {
     openDocument(path);
@@ -532,14 +526,7 @@ void MainWindow::readSettings()
 
     settings.endGroup();
 
-    m_recentDocumentsList.clear();
-    int size = settings.beginReadArray(SETTINGS_RECENT_DOCUMENTS_SECTION);
-    for (int index = 0; index < qMin(size, MAX_RECENT_DOCUMENT_SIZE); ++index) {
-        settings.setArrayIndex(index);
-        m_recentDocumentsList.append(settings.value(SETTINGS_RECENT_DOCUMENTS_DOCUMENT).toString());
-    }
-    settings.endArray();
-    updateRecentDocumentsMenu();
+    m_recentDocuments->readFromSettings(settings, SETTINGS_RECENT_DOCUMENTS_SECTION);
     updateCacheSizeInfo();
 }
 
@@ -576,13 +563,7 @@ void MainWindow::writeSettings()
 
     settings.endGroup();
 
-    settings.remove(SETTINGS_RECENT_DOCUMENTS_SECTION);
-    settings.beginWriteArray(SETTINGS_RECENT_DOCUMENTS_SECTION);
-    for(int index = 0; index < m_recentDocumentsList.size(); ++index) {
-        settings.setArrayIndex(index);
-        settings.setValue(SETTINGS_RECENT_DOCUMENTS_DOCUMENT, m_recentDocumentsList.at(index));
-    }
-    settings.endArray();
+    m_recentDocuments->writeToSettings(settings, SETTINGS_RECENT_DOCUMENTS_SECTION);
 }
 
 void MainWindow::openDocument(const QString &name)
@@ -617,7 +598,7 @@ void MainWindow::openDocument(const QString &name)
                    );
     m_needsRefresh = true;
     refresh();
-    updateRecentDocumentsList(tmp_name);
+    m_recentDocuments->accessing(tmp_name);
 }
 
 bool MainWindow::saveDocument(const QString &name)
@@ -647,7 +628,7 @@ bool MainWindow::saveDocument(const QString &name)
                    .arg(qApp->applicationName())
                    );
     statusBar()->showMessage(tr("Document save in %1").arg(file_path), STATUSBAR_TIMEOUT);
-    updateRecentDocumentsList(file_path);
+    m_recentDocuments->accessing(file_path);
 
     if (m_autoSaveImageAction->isChecked()) {
         QFileInfo info(file_path);
@@ -664,6 +645,7 @@ bool MainWindow::saveDocument(const QString &name)
         image.write(m_cachedImage);
         image.close();
     }
+    m_editor->document()->setModified(false);
     setWindowModified(false);
     return true;
 }
@@ -734,10 +716,6 @@ void MainWindow::createActions()
     m_quitAction->setStatusTip(tr("Quit the application"));
     connect(m_quitAction, SIGNAL(triggered()), this, SLOT(close()));
 
-    // Recent Documents menu
-    m_clearRecentDocumentsAction = new QAction(tr("Clear Menu"), this);
-    connect(m_clearRecentDocumentsAction, SIGNAL(triggered()), this, SLOT(onClearRecentDocumentsActionTriggered()));
-
     // Edit menu
     m_undoAction = new QAction(QIcon::fromTheme("edit-undo"), tr("&Undo"), this);
     m_undoAction->setShortcuts(QKeySequence::Undo);
@@ -804,7 +782,8 @@ void MainWindow::createMenus()
     m_fileMenu->addAction(m_saveDocumentAction);
     m_fileMenu->addAction(m_saveAsDocumentAction);
     m_fileMenu->addSeparator();
-    m_recentDocumentsMenu = m_fileMenu->addMenu(tr("Recent Documents"));
+    QMenu *recent_documents_submenu = m_fileMenu->addMenu(tr("Recent Documents"));
+    recent_documents_submenu->addActions(m_recentDocuments->actions());
     m_fileMenu->addSeparator();
     m_fileMenu->addAction(m_exportImageAction);
     m_fileMenu->addAction(m_exportAsImageAction);
@@ -918,49 +897,6 @@ void MainWindow::checkPaths()
 {
     m_hasValidPaths = QFileInfo(m_javaPath).exists() &&
             QFileInfo(m_plantUmlPath).exists();
-}
-
-void MainWindow::updateRecentDocumentsList(const QString &path)
-{
-    if (!path.isEmpty()) {
-        if (m_recentDocumentsList.size() == 0 || path != m_recentDocumentsList[0]) {
-            m_recentDocumentsList.insert(0, path);
-
-            // remove duplicates
-            int index = m_recentDocumentsList.lastIndexOf(path);
-            while (index > 0) {
-                m_recentDocumentsList.removeAt(index);
-                index = m_recentDocumentsList.lastIndexOf(path);
-            }
-
-            // keep at most MAX_RECENT_DOCUMENT_SIZE
-            while (m_recentDocumentsList.size() > MAX_RECENT_DOCUMENT_SIZE) {
-                m_recentDocumentsList = m_recentDocumentsList.mid(0, MAX_RECENT_DOCUMENT_SIZE);
-            }
-        }
-        updateRecentDocumentsMenu();
-    }
-}
-
-void MainWindow::updateRecentDocumentsMenu()
-{
-    foreach (QAction* action, m_recentDocumentsMenu->actions()) {
-        if (action != m_clearRecentDocumentsAction) {
-            action->deleteLater();
-        }
-    }
-    m_recentDocumentsMenu->clear();
-
-    foreach(const QString& path, m_recentDocumentsList) {
-        QAction *action = new QAction(path, this);
-        m_recentDocumentsMenu->addAction(action);
-        connect(action, SIGNAL(triggered()), m_recentDocumentsSignalMapper, SLOT(map()));
-        m_recentDocumentsSignalMapper->setMapping(action, path);
-    }
-    if (m_recentDocumentsList.size()) {
-        m_recentDocumentsMenu->addSeparator();
-    }
-    m_recentDocumentsMenu->addAction(m_clearRecentDocumentsAction);
 }
 
 void MainWindow::reloadAssistantXml(const QString &path)

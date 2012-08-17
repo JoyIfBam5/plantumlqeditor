@@ -44,3 +44,20 @@ target_link_libraries(test-filecache
 )
 
 register_test(test-filecache)
+
+#-------------------------------------------------------------------------------
+# test-recentdocuments
+#-------------------------------------------------------------------------------
+
+add_executable(test-recentdocuments
+    main.cpp
+    recentdocumentstest.cpp
+)
+
+target_link_libraries(test-recentdocuments
+    ${GMOCK_LIBRARY}
+    ${QT_QTCORE_LIBRARY}
+    plantuml_qeditor
+)
+
+register_test(test-recentdocuments)

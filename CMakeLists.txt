@@ -35,6 +35,7 @@ include_directories (${QT_INCLUDES})
 set (SOURCES
     assistantxmlreader.cpp
     filecache.cpp
+    recentdocuments.cpp
 )
 
 #-------------------------------------------------------------------------------

@@ -16,6 +16,7 @@ class QToolBox;
 class QListWidget;
 class QListWidgetItem;
 class FileCache;
+class RecentDocuments;
 
 class MainWindow : public QMainWindow
 {
@@ -47,7 +48,6 @@ private slots:
     void onSaveAsActionTriggered();
     void onExportImageActionTriggered();
     void onExportAsImageActionTriggered();
-    void onClearRecentDocumentsActionTriggered();
     void onRecentDocumentsActionTriggered(const QString& path);
     void onAssistanItemClicked(QListWidgetItem* item);
     void onAssistanItemDoubleClicked(QListWidgetItem* item);
@@ -72,8 +72,6 @@ private:
     void enableUndoRedoActions();
 
     void checkPaths();
-    void updateRecentDocumentsList(const QString& path);
-    void updateRecentDocumentsMenu();
     void reloadAssistantXml(const QString& path);
     void insertAssistantCode(const QString& code);
 
@@ -92,9 +90,6 @@ private:
 
     QString m_assistantXmlPath;
     QList<QListWidget*> m_assistantWidgets;
-
-    QStringList m_recentDocumentsList;
-    QSignalMapper *m_recentDocumentsSignalMapper;
 
     bool m_useCustomJava;
     bool m_useCustomPlantUml;
@@ -139,9 +134,6 @@ private:
     QAction *m_exportAsImageAction;
     QAction *m_quitAction;
 
-    QMenu *m_recentDocumentsMenu;
-    QAction *m_clearRecentDocumentsAction;
-
     QMenu *m_editMenu;
     QAction *m_undoAction;
     QAction *m_redoAction;
@@ -164,6 +156,7 @@ private:
     QAction *m_aboutQtAction;
 
     FileCache* m_cache;
+    RecentDocuments* m_recentDocuments;
 };
 
 #endif // MAINWINDOW_H

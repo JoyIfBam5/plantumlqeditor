@@ -47,8 +47,7 @@ const QString SETTINGS_CUSTOM_CACHE_PATH = "custom_cache";
 const QString SETTINGS_CACHE_MAX_SIZE = "cache_max_size";
 const int     SETTINGS_CACHE_MAX_SIZE_DEFAULT = 50 * 1024 * 1024; // in bytes
 
-const QString SETTINGS_RECENT_DOCUMENTS_SECTION = "recent_documents";
-const QString SETTINGS_RECENT_DOCUMENTS_DOCUMENT = "document";
+const QString SETTINGS_RECENT_DOCUMENTS_SECTION = "RecentDocuments";
 
 const QString SETTINGS_PREFERENCES_SECTION = "Preferences";
 
