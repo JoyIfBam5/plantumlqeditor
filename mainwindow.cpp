@@ -824,6 +824,7 @@ void MainWindow::createMenus()
     m_settingsMenu->addAction(m_showStatusBarAction);
     m_settingsMenu->addSeparator();
     m_settingsMenu->addAction(m_showAssistantDockAction);
+    m_settingsMenu->addAction(m_showAssistantInfoDockAction);
     m_settingsMenu->addAction(m_showEditorDockAction);
     m_settingsMenu->addSeparator();
     m_settingsMenu->addAction(m_pngPreviewAction);
@@ -851,6 +852,7 @@ void MainWindow::createToolBars()
     m_mainToolBar->addAction(m_saveAsDocumentAction);
     m_mainToolBar->addSeparator();
     m_mainToolBar->addAction(m_showAssistantDockAction);
+    m_mainToolBar->addAction(m_showAssistantInfoDockAction);
     m_mainToolBar->addAction(m_showEditorDockAction);
     m_mainToolBar->addSeparator();
     m_mainToolBar->addAction(m_undoAction);
@@ -905,8 +907,10 @@ void MainWindow::createDockWindows()
     dock->setObjectName("assistant_info");
     addDockWidget(Qt::LeftDockWidgetArea, dock);
 
-    m_showAssistantPreviewDockAction = dock->toggleViewAction();
-    m_showAssistantPreviewDockAction->setStatusTip(tr("Show or hide the assistan preview dock"));
+    m_showAssistantInfoDockAction = dock->toggleViewAction();
+    m_showAssistantInfoDockAction->setIconVisibleInMenu(false);
+    m_showAssistantInfoDockAction->setStatusTip(tr("Show or hide the assistant info dock"));
+    m_showAssistantInfoDockAction->setIcon(QIcon(":/assistant-info.svg"));
 }
 
 void MainWindow::enableUndoRedoActions()

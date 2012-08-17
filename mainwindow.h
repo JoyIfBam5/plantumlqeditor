@@ -143,7 +143,7 @@ private:
 
     QMenu *m_settingsMenu;
     QAction *m_showAssistantDockAction;
-    QAction *m_showAssistantPreviewDockAction;
+    QAction *m_showAssistantInfoDockAction;
     QAction *m_showEditorDockAction;
     QAction *m_showMainToolbarAction;
     QAction *m_showStatusBarAction;
