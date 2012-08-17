@@ -9,6 +9,7 @@
 
 #include <QtGui>
 #include <QtSvg>
+#include <QtSingleApplication>
 
 namespace {
 const int ASSISTANT_ITEM_DATA_ROLE = Qt::UserRole;
@@ -131,6 +132,13 @@ MainWindow::MainWindow(QWidget *parent)
     setUnifiedTitleAndToolBarOnMac(true);
 
     readSettings();
+
+    QtSingleApplication* single_app = qobject_cast<QtSingleApplication*>(qApp);
+    if (single_app) {
+        single_app->setActivationWindow(this);
+        connect(single_app, SIGNAL(messageReceived(QString)),
+                this, SLOT(onSingleApplicationReceivedMessage(QString)));
+    }
 }
 
 MainWindow::~MainWindow()
@@ -429,6 +437,21 @@ void MainWindow::onAssistanItemClicked(QListWidgetItem *item)
 void MainWindow::onAssistanItemDoubleClicked(QListWidgetItem *item)
 {
     insertAssistantCode(item->data(Qt::UserRole).toString());
+}
+
+void MainWindow::onSingleApplicationReceivedMessage(const QString &message)
+{
+    // the message is a file to open
+    QtSingleApplication* single_app = qobject_cast<QtSingleApplication*>(qApp);
+    if (single_app) {
+        single_app->activateWindow();
+        qDebug() << "single instance activated";
+    }
+
+    if (!message.isEmpty()) {
+        qDebug() << "received request to open " << message << "from another instance";
+        openDocument(message);
+    }
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

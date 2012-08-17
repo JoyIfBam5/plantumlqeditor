@@ -8,6 +8,8 @@ TARGET = plantumlqeditor
 
 TEMPLATE = app
 
+include(thirdparty/qtsingleapplication/src/qtsingleapplication.pri)
+
 SOURCES += main.cpp\
         mainwindow.cpp \
     previewwidget.cpp \

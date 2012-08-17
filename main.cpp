@@ -1,4 +1,5 @@
-#include <QApplication>
+#include <QtSingleApplication>
+#include <QDebug>
 #include "mainwindow.h"
 
 namespace {
@@ -13,12 +14,26 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationDomain(ORGANIZATION_DOMAIN);
     QCoreApplication::setApplicationName(APPLICATION_NAME);
 
-    QApplication a(argc, argv);
-    MainWindow w;
+    QtSingleApplication a(argc, argv);
+
+    QString open_document_path;
     if (argc == 2) {
-        w.openDocument(argv[1]);
-    } else {
+        open_document_path = argv[1];
+    }
+
+    if (a.isRunning()) {
+        a.sendMessage(open_document_path);
+        qDebug() << qPrintable(QObject::tr("%1 already running. Requested instance to open: %2. Now exitting...")
+                               .arg(APPLICATION_NAME)
+                               .arg(open_document_path));
+        return 0;
+    }
+
+    MainWindow w;
+    if (open_document_path.isEmpty()) {
         w.newDocument();
+    } else {
+        w.openDocument(open_document_path);
     }
     w.show();
 
