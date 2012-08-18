@@ -100,29 +100,6 @@ MainWindow::MainWindow(QWidget *parent)
     m_imageWidget = new PreviewWidget(this);
     setCentralWidget(m_imageWidget);
 
-    m_exportPathLabel = new QLabel(this);
-    m_exportPathLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
-    m_exportPathLabel->setMinimumWidth(200);
-    m_exportPathLabel->setText(EXPORT_TO_LABEL_FORMAT_STRING.arg(""));
-    m_exportPathLabel->setEnabled(false);
-
-    m_currentImageFormatLabel = new QLabel(this);
-    m_currentImageFormatLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
-
-    QFontMetrics font_metrics(m_exportPathLabel->font());
-    m_cacheSizeLabel = new QLabel(this);
-    m_cacheSizeLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
-    m_cacheSizeLabel->setMinimumWidth(font_metrics.width(QString(CACHE_SIZE_FORMAT_STRING.arg("#.## Mb"))));
-
-    m_autoRefreshLabel = new QLabel(this);
-    m_autoRefreshLabel->setText(AUTOREFRESH_STATUS_LABEL);
-    m_autoRefreshLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
-
-    statusBar()->addPermanentWidget(m_exportPathLabel);
-    statusBar()->addPermanentWidget(m_cacheSizeLabel);
-    statusBar()->addPermanentWidget(m_autoRefreshLabel);
-    statusBar()->addPermanentWidget(m_currentImageFormatLabel);
-
     createDockWindows();
     createActions();
     createMenus();
@@ -865,6 +842,33 @@ void MainWindow::createToolBars()
 
 void MainWindow::createStatusBar()
 {
+    m_exportPathLabel = new QLabel(this);
+    m_exportPathLabel->setMinimumWidth(200);
+    m_exportPathLabel->setText(EXPORT_TO_LABEL_FORMAT_STRING.arg(""));
+    m_exportPathLabel->setEnabled(false);
+
+    m_currentImageFormatLabel = new QLabel(this);
+
+    QFontMetrics font_metrics(m_exportPathLabel->font());
+    m_cacheSizeLabel = new QLabel(this);
+    m_cacheSizeLabel->setMinimumWidth(font_metrics.width(QString(CACHE_SIZE_FORMAT_STRING.arg("#.## Mb"))));
+
+    m_autoRefreshLabel = new QLabel(this);
+    m_autoRefreshLabel->setText(AUTOREFRESH_STATUS_LABEL);
+
+#ifdef Q_WS_X11
+    const int label_fram_style = QFrame::Panel | QFrame::Sunken;
+    m_exportPathLabel->setFrameStyle(label_fram_style);
+    m_currentImageFormatLabel->setFrameStyle(label_fram_style);
+    m_cacheSizeLabel->setFrameStyle(label_fram_style);
+    m_autoRefreshLabel->setFrameStyle(label_fram_style);
+#endif
+
+    statusBar()->addPermanentWidget(m_exportPathLabel);
+    statusBar()->addPermanentWidget(m_cacheSizeLabel);
+    statusBar()->addPermanentWidget(m_autoRefreshLabel);
+    statusBar()->addPermanentWidget(m_currentImageFormatLabel);
+
     statusBar()->showMessage(tr("Ready"), STATUSBAR_TIMEOUT);
 }
 
