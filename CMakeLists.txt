@@ -110,14 +110,20 @@ target_link_libraries(plantumlqeditor
 #-------------------------------------------------------------------------------
 # installer support
 #-------------------------------------------------------------------------------
-set(CPACK_PACKAGE_NAME "PlantUML-QEditor")
+set(CPACK_PACKAGE_NAME "plantuml-qeditor")
 set(CPACK_PACKAGE_VENDOR "Ionutz Borcoman")
 set(CPACK_PACKAGE_CONTACT "iborco@gmail.com")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "PlantUML QEditor - a Qt editor for PlantUML")
-set(CPACK_PACKAGE_VERSION "1.0.0")
 set(CPACK_PACKAGE_VERSION_MAJOR "1")
 set(CPACK_PACKAGE_VERSION_MINOR "0")
 set(CPACK_PACKAGE_VERSION_PATCH "0")
+
+# set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
+#set(CPACK_PACKAGE_ICON "icon64.png")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "PlantUML QEditor")
+#set(CPACK_RESOURCE_FILE_LICENSE "COPYING")
+#set(CPACK_RESOURCE_FILE_README "README")
+set(CPACK_SOURCE_IGNORE_FILES ".git/;.gitignore;thirdparty/gmock-1.6.0/")
 
 set(CPACK_GENERATOR "DEB")
 set(CPACK_GENERATOR "NSIS")
