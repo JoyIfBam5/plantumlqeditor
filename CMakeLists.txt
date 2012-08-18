@@ -1,6 +1,10 @@
-project (plantuml_qeditor_test)
+project (plantumlqeditor)
 
 cmake_minimum_required (VERSION 2.8)
+
+if(WIN32)
+    add_definitions(-DUNICODE -DQT_LARGEFILE_SUPPORT)
+endif()
 
 set (CMAKE_BUILD_TYPE "Debug")
 
@@ -92,3 +96,25 @@ target_link_libraries(plantumlqeditor
     plantumlqeditorlib
     qtsingleapplicationlib
 )
+
+#-------------------------------------------------------------------------------
+# installer support
+#-------------------------------------------------------------------------------
+set(CPACK_PACKAGE_NAME "PlantUML-QEditor")
+set(CPACK_PACKAGE_VENDOR "Ionutz Borcoman")
+set(CPACK_PACKAGE_CONTACT "iborco@gmail.com")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "PlantUML QEditor - a Qt editor for PlantUML")
+set(CPACK_PACKAGE_VERSION "1.0.0")
+set(CPACK_PACKAGE_VERSION_MAJOR "1")
+set(CPACK_PACKAGE_VERSION_MINOR "0")
+set(CPACK_PACKAGE_VERSION_PATCH "0")
+
+set(CPACK_GENERATOR "DEB")
+set(CPACK_GENERATOR "NSIS")
+set(CPACK_GENERATOR "RPM")
+
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Ionutz Borcoman") #required
+
+install(TARGETS plantumlqeditor RUNTIME DESTINATION bin)
+
+include (CPack)
