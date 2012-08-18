@@ -7,7 +7,7 @@ set (EXTRA_HEADERS_LIB
     QtSingleApplication
 )
 
-add_library (qtsingleapplicationlib
+add_library (qtsingleapplicationlib STATIC
     ${SOURCES_LIB}
     ${EXTRA_HEADERS_LIB}
 )

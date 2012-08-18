@@ -6,8 +6,6 @@ if(WIN32)
     add_definitions(-DUNICODE -DQT_LARGEFILE_SUPPORT)
 endif()
 
-set (CMAKE_BUILD_TYPE "Debug")
-
 set (EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/)
 set (LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/)
 
@@ -18,14 +16,18 @@ find_package (Qt4 4.8 REQUIRED)
 include (UseQt4)
 set (CMAKE_AUTOMOC TRUE)
 
-set (GMOCK_ROOT ${CMAKE_SOURCE_DIR}/thirdparty/gmock-1.6.0)
-set (GTEST_INCLUDE_DIR ${GMOCK_ROOT}/gtest/include)
-set (GTEST_MAIN_LIBRARY gtest_main)
-set (GTEST_LIBRARY gtest)
-set (GMOCK_LIBRARY gmock)
-enable_testing ()
-find_package (GTest REQUIRED)
-include_directories (${GMOCK_ROOT}/include ${GTEST_INCLUDE_DIR})
+option (ENABLE_UNIT_TESTS "enable unit test" OFF)
+if (${ENABLE_UNIT_TESTS})
+    set (CMAKE_BUILD_TYPE "Debug")
+    set (GMOCK_ROOT ${CMAKE_SOURCE_DIR}/thirdparty/gmock-1.6.0)
+    set (GTEST_INCLUDE_DIR ${GMOCK_ROOT}/gtest/include)
+    set (GTEST_MAIN_LIBRARY gtest_main)
+    set (GTEST_LIBRARY gtest)
+    set (GMOCK_LIBRARY gmock)
+    enable_testing ()
+    find_package (GTest REQUIRED)
+    include_directories (${GMOCK_ROOT}/include ${GTEST_INCLUDE_DIR})
+endif()
 
 message ("CMAKE_BUILD_TYPE:  ${CMAKE_BUILD_TYPE}")
 message ("Qt4 Headers:       ${QT_INCLUDES}")
@@ -50,7 +52,7 @@ set (SOURCES_LIB
 set (EXTRA_HEADERS_LIB
 )
 
-add_library (plantumlqeditorlib
+add_library (plantumlqeditorlib STATIC
     ${SOURCES_LIB}
     ${EXTRA_HEADERS_LIB}
 )
@@ -61,7 +63,9 @@ target_link_libraries (plantumlqeditorlib
 )
 
 add_subdirectory (thirdparty)
-add_subdirectory (tests)
+if(${ENABLE_UNIT_TESTS})
+    add_subdirectory(tests)
+endif()
 
 #-------------------------------------------------------------------------------
 # the real app
