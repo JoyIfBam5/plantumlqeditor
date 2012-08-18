@@ -87,11 +87,17 @@ set(FORMS_APP
 )
 qt4_wrap_ui(SOURCES_FORMS_APP ${FORMS_APP})
 
+set(QRC_APP
+    plantumlqeditor.qrc
+)
+qt4_add_resources(SOURCES_QRC_APP ${QRC_APP})
+
 include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(plantumlqeditor
     ${SOURCES_APP}
     ${SOURCES_FORMS_APP}
+    ${SOURCES_QRC_APP}
     ${EXTRA_HEADERS_APP}
 )
 
