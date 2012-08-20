@@ -115,22 +115,63 @@ set(CPACK_PACKAGE_VENDOR "Ionutz Borcoman")
 set(CPACK_PACKAGE_CONTACT "iborco@gmail.com")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "PlantUML QEditor - a Qt editor for PlantUML")
 set(CPACK_PACKAGE_VERSION_MAJOR "1")
-set(CPACK_PACKAGE_VERSION_MINOR "0")
+set(CPACK_PACKAGE_VERSION_MINOR "1")
 set(CPACK_PACKAGE_VERSION_PATCH "0")
 
-# set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
-#set(CPACK_PACKAGE_ICON "icon64.png")
+set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/icon64.png")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "PlantUML QEditor")
-#set(CPACK_RESOURCE_FILE_LICENSE "COPYING")
-#set(CPACK_RESOURCE_FILE_README "README")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/COPYING")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README")
 set(CPACK_SOURCE_IGNORE_FILES ".git/;.gitignore;thirdparty/gmock-1.6.0/")
 
-set(CPACK_GENERATOR "DEB")
-set(CPACK_GENERATOR "NSIS")
-set(CPACK_GENERATOR "RPM")
+if(WIN32)
+    set(CPACK_GENERATOR "ZIP" "NSIS")
 
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Ionutz Borcoman") #required
+    set(CPACK_PACKAGE_EXECUTABLES plantumlqeditor "PlantUML QEditor")
 
-install(TARGETS plantumlqeditor RUNTIME DESTINATION bin)
+    install(TARGETS plantumlqeditor
+        RUNTIME
+        DESTINATION bin
+        COMPONENT applications
+    )
+
+    file(GLOB LIBGCC_S_SJLJ_DLL ${CMAKE_FIND_ROOT_PATH}/bin/libgcc_s_sjlj*.dll)
+    file(GLOB LIBPNG_DLL ${CMAKE_FIND_ROOT_PATH}/bin/libpng*.dll)
+    file(GLOB LIBSTDCPP_DLL ${CMAKE_FIND_ROOT_PATH}/bin/libstdc++-*.dll)
+
+    install(FILES
+        ${CMAKE_FIND_ROOT_PATH}/bin/QtCore${QT_VERSION_MAJOR}.dll
+        ${CMAKE_FIND_ROOT_PATH}/bin/QtGui${QT_VERSION_MAJOR}.dll
+        ${CMAKE_FIND_ROOT_PATH}/bin/QtNetwork${QT_VERSION_MAJOR}.dll
+        ${CMAKE_FIND_ROOT_PATH}/bin/QtSvg${QT_VERSION_MAJOR}.dll
+        ${LIBGCC_S_SJLJ_DLL}
+        ${LIBPNG_DLL}
+        ${LIBSTDCPP_DLL}
+        ${CMAKE_FIND_ROOT_PATH}/bin/zlib1.dll
+        DESTINATION bin
+        COMPONENT applications
+    )
+
+    install(FILES assistant.xml
+        DESTINATION share/plantumlqeditor
+        COMPONENT assistant
+    )
+
+    install(DIRECTORY icons
+        DESTINATION share/plantumlqeditor
+        COMPONENT assistant
+    )
+
+    set(CPACK_COMPONENT_APPLICATIONS_DISPLAY_NAME "PlantUML QEditor")
+    set(CPACK_COMPONENT_ASSISTANT_DISPLAY_NAME "Default Assistant")
+
+    set(CPACK_COMPONENT_APPLICATIONS_DESCRIPTION
+        "A PlantUML editor written with Qt${QT_VERSION_MAJOR}"
+        )
+    set(CPACK_COMPONENT_ASSISTANT_DESCRIPTION
+        "The default assistant.xml and associated icons"
+        )
+
+endif()
 
 include (CPack)
