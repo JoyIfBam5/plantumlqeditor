@@ -80,6 +80,7 @@ set (SOURCES_APP
 
 set (EXTRA_HEADERS_APP
     utils.h
+    settingsconstants.h
 )
 
 set(FORMS_APP

@@ -15,9 +15,9 @@ PreferencesDialog::PreferencesDialog(FileCache* file_cache, QWidget *parent)
 {
     m_ui->setupUi(this);
 
-    m_ui->defaultJavaRadio->setText(tr("Default (%1)").arg(DEFAULT_JAVA_PATH));
-    m_ui->defaultPlatUmlRadio->setText(tr("Default (%1)").arg(DEFAULT_PLANTUML_PATH));
-    m_ui->defaultGraphizRadio->setText(tr("Default (%1)").arg(DEFAULT_GRAPHIZ_PATH));
+    m_ui->defaultJavaRadio->setText(tr("Default (%1)").arg(SETTINGS_CUSTOM_JAVA_PATH_DEFAULT));
+    m_ui->defaultPlatUmlRadio->setText(tr("Default (%1)").arg(SETTINGS_CUSTOM_PLANTUML_PATH_DEFAULT));
+    m_ui->defaultGraphizRadio->setText(tr("Default (%1)").arg(SETTINGS_CUSTOM_GRAPHIZ_PATH_DEFAULT));
     m_ui->defaultCacheRadio->setText(tr("Default (%1)").arg(QDesktopServices::storageLocation(QDesktopServices::CacheLocation)));
 
     if (m_fileCache) {

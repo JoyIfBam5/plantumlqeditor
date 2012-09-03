@@ -3,10 +3,6 @@
 
 #include <QString>
 
-const QString DEFAULT_JAVA_PATH = "/usr/bin/java";
-const QString DEFAULT_PLANTUML_PATH = "/usr/share/plantuml/plantuml.jar";
-const QString DEFAULT_GRAPHIZ_PATH = "/usr/bin/dot";
-
 const QString SETTINGS_MAIN_SECTION = "MainWindow";
 
 const QString SETTINGS_GEOMETRY = "geometry";
@@ -25,17 +21,14 @@ const QString SETTINGS_IMAGE_FORMAT = "image_format";
 const QString SETTINGS_USE_CUSTOM_JAVA = "use_custom_java";
 const bool    SETTINGS_USE_CUSTOM_JAVA_DEFAULT = true;
 const QString SETTINGS_CUSTOM_JAVA_PATH = "custom_java";
-const QString SETTINGS_CUSTOM_JAVA_PATH_DEFAULT = "/usr/bin/java";
 
 const QString SETTINGS_USE_CUSTOM_PLANTUML = "use_custom_plantuml";
 const bool    SETTINGS_USE_CUSTOM_PLANTUML_DEFAULT = true;
 const QString SETTINGS_CUSTOM_PLANTUML_PATH = "custom_plantuml";
-const QString SETTINGS_CUSTOM_PLANTUML_PATH_DEFAULT = "/usr/bin/plantuml";
 
 const QString SETTINGS_USE_CUSTOM_GRAPHIZ = "use_custom_graphiz";
 const bool    SETTINGS_USE_CUSTOM_GRAPHIZ_DEFAULT = true;
 const QString SETTINGS_CUSTOM_GRAPHIZ_PATH = "custom_graphiz";
-const QString SETTINGS_CUSTOM_GRAPHIZ_PATH_DEFAULT = "/usr/bin/dot";
 
 const QString SETTINGS_ASSISTANT_XML_PATH = "assistant_xml";
 
@@ -52,5 +45,15 @@ const QString SETTINGS_RECENT_DOCUMENTS_SECTION = "RecentDocuments";
 const QString SETTINGS_PREFERENCES_SECTION = "Preferences";
 
 const int TIMEOUT_SCALE = 1000;
+
+#if defined(Q_WS_WIN)
+const QString SETTINGS_CUSTOM_JAVA_PATH_DEFAULT = "C:/Program Files (x86)/Java/jre7/bin/java.exe";
+const QString SETTINGS_CUSTOM_PLANTUML_PATH_DEFAULT = "C:/plantuml.jar";
+const QString SETTINGS_CUSTOM_GRAPHIZ_PATH_DEFAULT = "C:/Program Files (x86)/Graphviz 2.28/dot.exe";
+#else
+const QString SETTINGS_CUSTOM_JAVA_PATH_DEFAULT = "/usr/bin/java";
+const QString SETTINGS_CUSTOM_PLANTUML_PATH_DEFAULT = "/usr/bin/plantuml";
+const QString SETTINGS_CUSTOM_GRAPHIZ_PATH_DEFAULT = "/usr/bin/dot";
+#endif
 
 #endif // SETTINGSCONSTANTS_H

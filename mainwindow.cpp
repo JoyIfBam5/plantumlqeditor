@@ -467,15 +467,15 @@ void MainWindow::readSettings()
 
     m_useCustomJava = settings.value(SETTINGS_USE_CUSTOM_JAVA, SETTINGS_USE_CUSTOM_JAVA_DEFAULT).toBool();
     m_customJavaPath = settings.value(SETTINGS_CUSTOM_JAVA_PATH, SETTINGS_CUSTOM_JAVA_PATH_DEFAULT).toString();
-    m_javaPath = m_useCustomJava ? m_customJavaPath : DEFAULT_JAVA_PATH;
+    m_javaPath = m_useCustomJava ? m_customJavaPath : SETTINGS_CUSTOM_JAVA_PATH_DEFAULT;
 
     m_useCustomPlantUml = settings.value(SETTINGS_USE_CUSTOM_PLANTUML, SETTINGS_USE_CUSTOM_PLANTUML_DEFAULT).toBool();
     m_customPlantUmlPath = settings.value(SETTINGS_CUSTOM_PLANTUML_PATH, SETTINGS_CUSTOM_PLANTUML_PATH_DEFAULT).toString();
-    m_plantUmlPath = m_useCustomPlantUml ? m_customPlantUmlPath : DEFAULT_PLANTUML_PATH;
+    m_plantUmlPath = m_useCustomPlantUml ? m_customPlantUmlPath : SETTINGS_CUSTOM_PLANTUML_PATH_DEFAULT;
 
     m_useCustomGraphiz = settings.value(SETTINGS_USE_CUSTOM_GRAPHIZ, SETTINGS_USE_CUSTOM_GRAPHIZ_DEFAULT).toBool();
     m_customGraphizPath = settings.value(SETTINGS_CUSTOM_GRAPHIZ_PATH, SETTINGS_CUSTOM_GRAPHIZ_PATH_DEFAULT).toString();
-    m_graphizPath = m_useCustomGraphiz ? m_customGraphizPath : DEFAULT_GRAPHIZ_PATH;
+    m_graphizPath = m_useCustomGraphiz ? m_customGraphizPath : SETTINGS_CUSTOM_GRAPHIZ_PATH_DEFAULT;
 
     checkPaths();
 
@@ -895,7 +895,9 @@ void MainWindow::createDockWindows()
     m_showAssistantDockAction = dock->toggleViewAction();
     m_showAssistantDockAction->setIconVisibleInMenu(false);
     m_showAssistantDockAction->setStatusTip(tr("Show or hide the assistant dock"));
+#if !defined(Q_WS_WIN) // BUG: icons are not displayed when cross-linking
     m_showAssistantDockAction->setIcon(QIcon(":/assistant.svg"));
+#endif
 
     dock = new QDockWidget(tr("Assistant Info"), this);
     QWidget* widget = new QWidget(dock);
@@ -914,7 +916,9 @@ void MainWindow::createDockWindows()
     m_showAssistantInfoDockAction = dock->toggleViewAction();
     m_showAssistantInfoDockAction->setIconVisibleInMenu(false);
     m_showAssistantInfoDockAction->setStatusTip(tr("Show or hide the assistant info dock"));
+#if !defined(Q_WS_WIN) // BUG: icons are not displayed when cross-linking
     m_showAssistantInfoDockAction->setIcon(QIcon(":/assistant-info.svg"));
+#endif
 }
 
 void MainWindow::enableUndoRedoActions()
