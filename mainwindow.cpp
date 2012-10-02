@@ -420,6 +420,7 @@ void MainWindow::onRecentDocumentsActionTriggered(const QString &path)
 void MainWindow::onAssistanItemDoubleClicked(QListWidgetItem *item)
 {
     insertAssistantCode(item->data(Qt::UserRole).toString());
+    m_editor->setFocus(); // force focus to move to the editor
 }
 
 void MainWindow::onSingleApplicationReceivedMessage(const QString &message)
