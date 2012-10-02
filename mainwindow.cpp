@@ -454,16 +454,12 @@ void MainWindow::onAssistantItemInsert(QWidget *widget)
 void MainWindow::onNextAssistant()
 {
     m_assistantToolBox->setCurrentIndex((m_assistantToolBox->currentIndex() + 1) % m_assistantToolBox->count());
-    focusAssistant();
-    onAssistantItemSelectionChanged(); // make sure we don't show stale info
 }
 
 void MainWindow::onPrevAssistant()
 {
     const int count = m_assistantToolBox->count();
     m_assistantToolBox->setCurrentIndex((count + m_assistantToolBox->currentIndex() - 1) % count);
-    focusAssistant();
-    onAssistantItemSelectionChanged(); // make sure we don't show stale info
 }
 
 void MainWindow::onAssistantItemSelectionChanged()
@@ -479,6 +475,12 @@ void MainWindow::onAssistantItemSelectionChanged()
             m_assistantCodePreview->setPlainText(item->data(ASSISTANT_ITEM_DATA_ROLE).toString());
         }
     }
+}
+
+void MainWindow::onCurrentAssistantChanged(int /*index*/)
+{
+    focusAssistant();
+    onAssistantItemSelectionChanged(); // make sure we don't show stale info
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -964,6 +966,8 @@ void MainWindow::createDockWindows()
     dock->setWidget(m_assistantToolBox);
     dock->setObjectName("assistant");
     addDockWidget(Qt::LeftDockWidgetArea, dock);
+    connect(m_assistantToolBox, SIGNAL(currentChanged(int)),
+            this, SLOT(onCurrentAssistantChanged(int)));
 
     m_showAssistantDockAction = dock->toggleViewAction();
     m_showAssistantDockAction->setIconVisibleInMenu(false);

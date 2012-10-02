@@ -57,6 +57,7 @@ private slots:
     void onNextAssistant();
     void onPrevAssistant();
     void onAssistantItemSelectionChanged();
+    void onCurrentAssistantChanged(int index);
 
 private:
     enum ImageFormat { SvgFormat, PngFormat };
