@@ -460,6 +460,19 @@ void MainWindow::onAssistantItemInsert(QWidget *widget)
     }
 }
 
+void MainWindow::onNextAssistant()
+{
+    m_assistantToolBox->setCurrentIndex((m_assistantToolBox->currentIndex() + 1) % m_assistantToolBox->count());
+    m_assistantToolBox->currentWidget()->setFocus();
+}
+
+void MainWindow::onPrevAssistant()
+{
+    const int count = m_assistantToolBox->count();
+    m_assistantToolBox->setCurrentIndex((count + m_assistantToolBox->currentIndex() - 1) % count);
+    m_assistantToolBox->currentWidget()->setFocus();
+}
+
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (maybeSave()) {
@@ -812,6 +825,17 @@ void MainWindow::createActions()
     focus_action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_1));
     connect(focus_action, SIGNAL(triggered()), this, SLOT(onAssistantFocus()));
     this->addAction(focus_action);
+
+    // assistant actions
+    QAction* navigation_action = new QAction(this);
+    navigation_action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Down));
+    connect(navigation_action, SIGNAL(triggered()), this, SLOT(onNextAssistant()));
+    addAction(navigation_action);
+
+    navigation_action = new QAction(this);
+    navigation_action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Up));
+    connect(navigation_action, SIGNAL(triggered()), this, SLOT(onPrevAssistant()));
+    addAction(navigation_action);
 }
 
 void MainWindow::createMenus()

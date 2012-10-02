@@ -56,6 +56,8 @@ private slots:
     void onAssistantFocus();
     void onAssistantItemPreview(QWidget* widget);
     void onAssistantItemInsert(QWidget* widget);
+    void onNextAssistant();
+    void onPrevAssistant();
 
 private:
     enum ImageFormat { SvgFormat, PngFormat };
