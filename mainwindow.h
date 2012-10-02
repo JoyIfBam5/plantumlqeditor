@@ -51,8 +51,8 @@ private slots:
     void onRecentDocumentsActionTriggered(const QString& path);
     void onAssistanItemClicked(QListWidgetItem* item);
     void onAssistanItemDoubleClicked(QListWidgetItem* item);
-
     void onSingleApplicationReceivedMessage(const QString& message);
+    void onAssistantFocus();
 
 private:
     enum ImageFormat { SvgFormat, PngFormat };

@@ -243,7 +243,7 @@ void MainWindow::refresh(bool forced)
         return;
     }
 
-    if (refreshFromCache()) {
+    if (!forced && refreshFromCache()) {
         return;
     }
 
@@ -429,6 +429,12 @@ void MainWindow::onSingleApplicationReceivedMessage(const QString &message)
         qDebug() << "received request to open " << message << "from another instance";
         openDocument(message);
     }
+}
+
+void MainWindow::onAssistantFocus()
+{
+    qDebug() << "assistant focus";
+    m_assistantToolBox->currentWidget()->setFocus();
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -772,6 +778,17 @@ void MainWindow::createActions()
     m_aboutQtAction = new QAction(tr("About &Qt"), this);
     m_aboutQtAction->setStatusTip(tr("Show the Qt library's About box"));
     connect(m_aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+
+    // focus actions
+    QAction* focus_action = new QAction(this);
+    focus_action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_0));
+    connect(focus_action, SIGNAL(triggered()), m_editor, SLOT(setFocus()));
+    this->addAction(focus_action);
+
+    focus_action = new QAction(this);
+    focus_action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_1));
+    connect(focus_action, SIGNAL(triggered()), this, SLOT(onAssistantFocus()));
+    this->addAction(focus_action);
 }
 
 void MainWindow::createMenus()
@@ -885,6 +902,7 @@ void MainWindow::createDockWindows()
     m_showEditorDockAction->setIconVisibleInMenu(false);
     m_showEditorDockAction->setStatusTip(tr("Show or hide the document editor dock"));
     m_showEditorDockAction->setIcon(QIcon::fromTheme("accessories-text-editor"));
+    m_showEditorDockAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_0));
 
     dock = new QDockWidget(tr("Assistant"), this);
     m_assistantToolBox = new QToolBox(dock);
@@ -898,6 +916,7 @@ void MainWindow::createDockWindows()
 #if !defined(Q_WS_WIN) // BUG: icons are not displayed when cross-linking
     m_showAssistantDockAction->setIcon(QIcon(":/assistant.svg"));
 #endif
+    m_showAssistantDockAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_1));
 
     dock = new QDockWidget(tr("Assistant Info"), this);
     QWidget* widget = new QWidget(dock);
@@ -919,6 +938,7 @@ void MainWindow::createDockWindows()
 #if !defined(Q_WS_WIN) // BUG: icons are not displayed when cross-linking
     m_showAssistantInfoDockAction->setIcon(QIcon(":/assistant-info.svg"));
 #endif
+    m_showAssistantInfoDockAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_2));
 }
 
 void MainWindow::enableUndoRedoActions()
