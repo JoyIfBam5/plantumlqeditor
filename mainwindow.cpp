@@ -108,6 +108,14 @@ MainWindow::MainWindow(QWidget *parent)
 
     setUnifiedTitleAndToolBarOnMac(true);
 
+    m_assistantPreviewSignalMapper = new QSignalMapper(this);
+    m_assistantInsertSignalMapper = new QSignalMapper(this);
+
+    connect(m_assistantPreviewSignalMapper, SIGNAL(mapped(QWidget*)),
+            this, SLOT(onAssistantItemPreview(QWidget*)));
+    connect(m_assistantInsertSignalMapper, SIGNAL(mapped(QWidget*)),
+            this, SLOT(onAssistantItemInsert(QWidget*)));
+
     readSettings();
 
     QtSingleApplication* single_app = qobject_cast<QtSingleApplication*>(qApp);
@@ -982,9 +990,6 @@ void MainWindow::reloadAssistantXml(const QString &path)
         if (m_assistantXmlPath.isEmpty()) {
             qDebug() << "No assistant defined.";
         } else {
-            QSignalMapper* preview_signal_mapper = new QSignalMapper(this);
-            QSignalMapper* insert_signal_mapper = new QSignalMapper(this);
-
             AssistantXmlReader reader;
             reader.readFile(m_assistantXmlPath);
 
@@ -1010,25 +1015,20 @@ void MainWindow::reloadAssistantXml(const QString &path)
 
                 QAction* action = new QAction(this);
                 action->setShortcut(QKeySequence(Qt::Key_Return));
-                preview_signal_mapper->setMapping(action, view);
+                m_assistantPreviewSignalMapper->setMapping(action, view);
                 connect(action, SIGNAL(triggered()),
-                        preview_signal_mapper, SLOT(map()));
+                        m_assistantPreviewSignalMapper, SLOT(map()));
                 view->addAction(action);
 
                 action = new QAction(this);
                 action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Return));
-                insert_signal_mapper->setMapping(action, view);
+                m_assistantInsertSignalMapper->setMapping(action, view);
                 connect(action, SIGNAL(triggered()),
-                        insert_signal_mapper, SLOT(map()));
+                        m_assistantInsertSignalMapper, SLOT(map()));
                 view->addAction(action);
 
                 m_assistantWidgets << view;
             }
-
-            connect(preview_signal_mapper, SIGNAL(mapped(QWidget*)),
-                    this, SLOT(onAssistantItemPreview(QWidget*)));
-            connect(insert_signal_mapper, SIGNAL(mapped(QWidget*)),
-                    this, SLOT(onAssistantItemInsert(QWidget*)));
         }
     }
 }

@@ -17,6 +17,7 @@ class QListWidget;
 class QListWidgetItem;
 class FileCache;
 class RecentDocuments;
+class QSignalMapper;
 
 class MainWindow : public QMainWindow
 {
@@ -158,6 +159,9 @@ private:
     QMenu *m_helpMenu;
     QAction *m_aboutAction;
     QAction *m_aboutQtAction;
+
+    QSignalMapper* m_assistantPreviewSignalMapper;
+    QSignalMapper* m_assistantInsertSignalMapper;
 
     FileCache* m_cache;
     RecentDocuments* m_recentDocuments;
