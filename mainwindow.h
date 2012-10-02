@@ -50,14 +50,13 @@ private slots:
     void onExportImageActionTriggered();
     void onExportAsImageActionTriggered();
     void onRecentDocumentsActionTriggered(const QString& path);
-    void onAssistanItemClicked(QListWidgetItem* item);
     void onAssistanItemDoubleClicked(QListWidgetItem* item);
     void onSingleApplicationReceivedMessage(const QString& message);
     void onAssistantFocus();
-    void onAssistantItemPreview(QWidget* widget);
     void onAssistantItemInsert(QWidget* widget);
     void onNextAssistant();
     void onPrevAssistant();
+    void onAssistantItemSelectionChanged();
 
 private:
     enum ImageFormat { SvgFormat, PngFormat };
@@ -162,7 +161,6 @@ private:
     QAction *m_aboutAction;
     QAction *m_aboutQtAction;
 
-    QSignalMapper* m_assistantPreviewSignalMapper;
     QSignalMapper* m_assistantInsertSignalMapper;
 
     FileCache* m_cache;

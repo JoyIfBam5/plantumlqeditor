@@ -108,11 +108,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     setUnifiedTitleAndToolBarOnMac(true);
 
-    m_assistantPreviewSignalMapper = new QSignalMapper(this);
     m_assistantInsertSignalMapper = new QSignalMapper(this);
-
-    connect(m_assistantPreviewSignalMapper, SIGNAL(mapped(QWidget*)),
-            this, SLOT(onAssistantItemPreview(QWidget*)));
     connect(m_assistantInsertSignalMapper, SIGNAL(mapped(QWidget*)),
             this, SLOT(onAssistantItemInsert(QWidget*)));
 
@@ -410,15 +406,6 @@ void MainWindow::onRecentDocumentsActionTriggered(const QString &path)
     openDocument(path);
 }
 
-void MainWindow::onAssistanItemClicked(QListWidgetItem *item)
-{
-    QString notes = item->data(ASSISTANT_ITEM_NOTES_ROLE).toString();
-    m_assistantPreviewNotes->setText(notes.isEmpty() ?
-                                         tr("Code:") :
-                                         tr("Notes:<br>%1<br>Code:").arg(notes));
-    m_assistantCodePreview->setPlainText(item->data(ASSISTANT_ITEM_DATA_ROLE).toString());
-}
-
 void MainWindow::onAssistanItemDoubleClicked(QListWidgetItem *item)
 {
     insertAssistantCode(item->data(Qt::UserRole).toString());
@@ -444,14 +431,6 @@ void MainWindow::onAssistantFocus()
     m_assistantToolBox->currentWidget()->setFocus();
 }
 
-void MainWindow::onAssistantItemPreview(QWidget *widget)
-{
-    QListWidget* list_widget = qobject_cast<QListWidget*>(widget);
-    if (list_widget) {
-        onAssistanItemClicked(list_widget->currentItem());
-    }
-}
-
 void MainWindow::onAssistantItemInsert(QWidget *widget)
 {
     QListWidget* list_widget = qobject_cast<QListWidget*>(widget);
@@ -471,6 +450,21 @@ void MainWindow::onPrevAssistant()
     const int count = m_assistantToolBox->count();
     m_assistantToolBox->setCurrentIndex((count + m_assistantToolBox->currentIndex() - 1) % count);
     m_assistantToolBox->currentWidget()->setFocus();
+}
+
+void MainWindow::onAssistantItemSelectionChanged()
+{
+    QListWidget* widget = qobject_cast<QListWidget*>(m_assistantToolBox->currentWidget());
+    if (widget) {
+        QListWidgetItem* item = widget->currentItem();
+        if (item) {
+            QString notes = item->data(ASSISTANT_ITEM_NOTES_ROLE).toString();
+            m_assistantPreviewNotes->setText(notes.isEmpty() ?
+                                                 tr("Code:") :
+                                                 tr("Notes:<br>%1<br>Code:").arg(notes));
+            m_assistantCodePreview->setPlainText(item->data(ASSISTANT_ITEM_DATA_ROLE).toString());
+        }
+    }
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -1034,17 +1028,10 @@ void MainWindow::reloadAssistantXml(const QString &path)
                 m_assistantToolBox->addItem(view, assistant->name());
                 connect(view, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
                         this, SLOT(onAssistanItemDoubleClicked(QListWidgetItem*)));
-                connect(view, SIGNAL(itemClicked(QListWidgetItem*)),
-                        this, SLOT(onAssistanItemClicked(QListWidgetItem*)));
+                connect(view, SIGNAL(itemSelectionChanged()),
+                        this, SLOT(onAssistantItemSelectionChanged()));
 
                 QAction* action = new QAction(this);
-                action->setShortcut(QKeySequence(Qt::Key_Return));
-                m_assistantPreviewSignalMapper->setMapping(action, view);
-                connect(action, SIGNAL(triggered()),
-                        m_assistantPreviewSignalMapper, SLOT(map()));
-                view->addAction(action);
-
-                action = new QAction(this);
                 action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Return));
                 m_assistantInsertSignalMapper->setMapping(action, view);
                 connect(action, SIGNAL(triggered()),
