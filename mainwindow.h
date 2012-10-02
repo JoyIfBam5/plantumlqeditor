@@ -83,6 +83,7 @@ private:
 
     bool refreshFromCache();
     void updateCacheSizeInfo();
+    void focusAssistant();
 
     QLabel *m_currentImageFormatLabel;
     QLabel *m_autoRefreshLabel;

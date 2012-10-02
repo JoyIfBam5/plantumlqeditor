@@ -300,6 +300,17 @@ void MainWindow::updateCacheSizeInfo()
                                   tr("NO CACHE"));
 }
 
+void MainWindow::focusAssistant()
+{
+    QListWidget* widget = qobject_cast<QListWidget*>(m_assistantToolBox->currentWidget());
+    if (widget) {
+        widget->setFocus();
+        if (widget->selectedItems().count() == 0) {
+            widget->setCurrentItem(widget->itemAt(0, 0));
+        }
+    }
+}
+
 void MainWindow::refreshFinished()
 {
     m_cachedImage = m_process->readAll();
@@ -428,7 +439,7 @@ void MainWindow::onSingleApplicationReceivedMessage(const QString &message)
 
 void MainWindow::onAssistantFocus()
 {
-    m_assistantToolBox->currentWidget()->setFocus();
+    focusAssistant();
 }
 
 void MainWindow::onAssistantItemInsert(QWidget *widget)
@@ -442,14 +453,16 @@ void MainWindow::onAssistantItemInsert(QWidget *widget)
 void MainWindow::onNextAssistant()
 {
     m_assistantToolBox->setCurrentIndex((m_assistantToolBox->currentIndex() + 1) % m_assistantToolBox->count());
-    m_assistantToolBox->currentWidget()->setFocus();
+    focusAssistant();
+    onAssistantItemSelectionChanged(); // make sure we don't show stale info
 }
 
 void MainWindow::onPrevAssistant()
 {
     const int count = m_assistantToolBox->count();
     m_assistantToolBox->setCurrentIndex((count + m_assistantToolBox->currentIndex() - 1) % count);
-    m_assistantToolBox->currentWidget()->setFocus();
+    focusAssistant();
+    onAssistantItemSelectionChanged(); // make sure we don't show stale info
 }
 
 void MainWindow::onAssistantItemSelectionChanged()
