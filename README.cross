@@ -1,0 +1,10 @@
+Cross-compile with mingw on Fedora
+==================================
+
+* create plantuml-editor-mingw dir in the parent of this directory
+* cd to plantuml-editor-mingw:
+    cd ../plantuml-editor-mingw
+* configure cmake:
+    mingw32-cmake ../plantuml-editor
+* build the installer:
+    cpack -G NSIS
