@@ -53,6 +53,8 @@ private slots:
     void onAssistanItemDoubleClicked(QListWidgetItem* item);
     void onSingleApplicationReceivedMessage(const QString& message);
     void onAssistantFocus();
+    void onAssistantItemPreview(QWidget* widget);
+    void onAssistantItemInsert(QWidget* widget);
 
 private:
     enum ImageFormat { SvgFormat, PngFormat };
