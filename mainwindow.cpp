@@ -383,7 +383,7 @@ void MainWindow::onPreferencesActionTriggered()
 
     if (dialog.result() == QDialog::Accepted) {
         dialog.writeSettings();
-        readSettings();
+        readSettings(true);
     }
 }
 
@@ -509,7 +509,7 @@ bool MainWindow::maybeSave()
     return true;
 }
 
-void MainWindow::readSettings()
+void MainWindow::readSettings(bool reload)
 {
     const QString DEFAULT_CACHE_PATH = QDesktopServices::storageLocation(QDesktopServices::CacheLocation);
 
@@ -557,8 +557,10 @@ void MainWindow::readSettings()
 
     m_autoSaveImageAction->setChecked(settings.value(SETTINGS_AUTOSAVE_IMAGE_ENABLED, SETTINGS_AUTOSAVE_IMAGE_ENABLED_DEFAULT).toBool());
 
-    restoreGeometry(settings.value(SETTINGS_GEOMETRY).toByteArray());
-    restoreState(settings.value(SETTINGS_WINDOW_STATE).toByteArray());
+    if (!reload) {
+        restoreGeometry(settings.value(SETTINGS_GEOMETRY).toByteArray());
+        restoreState(settings.value(SETTINGS_WINDOW_STATE).toByteArray());
+    }
 
     m_showMainToolbarAction->setChecked(m_mainToolBar->isVisibleTo(this)); // NOTE: works even if the current window is not yet displayed
     connect(m_showMainToolbarAction, SIGNAL(toggled(bool)), m_mainToolBar, SLOT(setVisible(bool)));

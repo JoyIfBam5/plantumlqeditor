@@ -65,7 +65,7 @@ private:
     void closeEvent(QCloseEvent *event);
 
     bool maybeSave();
-    void readSettings();
+    void readSettings(bool reload = false);
     void writeSettings();
     bool saveDocument(const QString& name);
     void exportImage(const QString& name);
