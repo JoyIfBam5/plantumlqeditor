@@ -151,6 +151,14 @@ void MainWindow::newDocument()
     enableUndoRedoActions();
 }
 
+void MainWindow::copyImage()
+{
+    QPixmap pixmap;
+    pixmap.loadFromData(m_cachedImage);
+    QApplication::clipboard()->setPixmap(pixmap);
+    qDebug() << "Image copy into Clipboard";
+}
+
 void MainWindow::undo()
 {
     QTextDocument *document = m_editor->document();
@@ -779,6 +787,13 @@ void MainWindow::createActions()
     m_redoAction->setShortcuts(QKeySequence::Redo);
     connect(m_redoAction, SIGNAL(triggered()), this, SLOT(redo()));
 
+    m_copyImageAction = new QAction(QIcon::fromTheme("copy"), tr("&Copy Image"), this);
+    m_copyImageAction->setShortcuts(QList<QKeySequence>()
+                                    << QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_C)
+                                    << QKeySequence::Copy
+                                   );
+    connect(m_copyImageAction, SIGNAL(triggered()), this, SLOT(copyImage()) );
+
     // Tools menu
     m_pngPreviewAction = new QAction(tr("PNG"), this);
     m_pngPreviewAction->setCheckable(true);
@@ -869,6 +884,7 @@ void MainWindow::createMenus()
     m_editMenu = menuBar()->addMenu(tr("&Edit"));
     m_editMenu->addAction(m_undoAction);
     m_editMenu->addAction(m_redoAction);
+    m_editMenu->addAction(m_copyImageAction);
     m_editMenu->addSeparator();
     m_editMenu->addAction(m_refreshAction);
 

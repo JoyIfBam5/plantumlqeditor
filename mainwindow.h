@@ -39,6 +39,7 @@ private slots:
     void changeImageFormat();
     void undo();
     void redo();
+    void copyImage();
 
     void onAutoRefreshActionToggled(bool state);
     void onEditorChanged();
@@ -144,6 +145,7 @@ private:
 
     QMenu *m_editMenu;
     QAction *m_undoAction;
+    QAction *m_copyImageAction;
     QAction *m_redoAction;
     QAction *m_refreshAction;
 
