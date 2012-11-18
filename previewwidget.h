@@ -19,12 +19,23 @@ public:
 
     void load(const QByteArray &data);
 
+public slots:
+    void zoomOriginal() { setZoomScale(ZOOM_ORIGINAL_SCALE); }
+    void zoomIn();
+    void zoomOut();
+
 private:
+    static const int ZOOM_ORIGINAL_SCALE = 100;
+
     void paintEvent(QPaintEvent *);
+    void zoomImage();
+    void setZoomScale(int new_scale);
 
     QImage m_image;
+    QImage m_zoomedImage;
     Mode m_mode;
     QSvgRenderer *m_svgRenderer;
+    int m_zoomScale;
 };
 
 #endif // PREVIEWWIDGET_H

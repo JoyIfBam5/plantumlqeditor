@@ -79,7 +79,7 @@ private:
     void createStatusBar();
     void createDockWindows();
     void enableUndoRedoActions();
-    void addZoomAction(QWidget* widget);
+    void addZoomActions(QWidget* widget);
 
     void checkPaths();
     void reloadAssistantXml(const QString& path);
@@ -170,9 +170,6 @@ private:
     QAction *m_zoomInAction;
     QAction *m_zoomOutAction;
     QAction *m_zoomOriginalAction;
-    QAction *m_zoomFitBestAction;
-    QAction *m_zoomFitHeightAction;
-    QAction *m_zoomFitWidthAction;
 
     QMenu *m_helpMenu;
     QAction *m_aboutAction;

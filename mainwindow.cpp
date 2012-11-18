@@ -872,14 +872,11 @@ void MainWindow::createActions()
 
     // zoom action
     m_zoomInAction = new QAction(QIcon::fromTheme("zoom-in"), tr("Zoom In"), this);
+    connect(m_zoomInAction, SIGNAL(triggered()), m_imageWidget, SLOT(zoomIn()));
     m_zoomOutAction = new QAction(QIcon::fromTheme("zoom-out"), tr("Zoom Out"), this);
+    connect(m_zoomOutAction, SIGNAL(triggered()), m_imageWidget, SLOT(zoomOut()));
     m_zoomOriginalAction = new QAction(QIcon::fromTheme("zoom-original"), tr("1:1"), this);
-    m_zoomFitBestAction = new QAction(QIcon::fromTheme("zoom-fit-best"), tr("Fit Image"), this);
-    m_zoomFitBestAction->setCheckable(true);
-    m_zoomFitHeightAction = new QAction(QIcon::fromTheme("zoom-fit-height"), tr("Fit Height"), this);
-    m_zoomFitHeightAction->setCheckable(true);
-    m_zoomFitWidthAction = new QAction(QIcon::fromTheme("zoom-fit-width"), tr("Fit Width"), this);
-    m_zoomFitWidthAction->setCheckable(true);
+    connect(m_zoomOriginalAction, SIGNAL(triggered()), m_imageWidget, SLOT(zoomOriginal()));
 }
 
 void MainWindow::createMenus()
@@ -922,7 +919,7 @@ void MainWindow::createMenus()
     m_settingsMenu->addAction(m_preferencesAction);
 
     m_zoomMenu = menuBar()->addMenu(tr("&Zoom"));
-    addZoomAction(m_zoomMenu);
+    addZoomActions(m_zoomMenu);
 
     menuBar()->addSeparator();
 
@@ -953,7 +950,7 @@ void MainWindow::createToolBars()
 
     m_zoomToolBar = addToolBar(tr("ZoomToolbar"));
     m_zoomToolBar->setObjectName("zoom_toolbar");
-    addZoomAction(m_zoomToolBar);
+    addZoomActions(m_zoomToolBar);
 }
 
 void MainWindow::createStatusBar()
@@ -1049,17 +1046,11 @@ void MainWindow::enableUndoRedoActions()
     m_redoAction->setEnabled(document->isRedoAvailable());
 }
 
-void MainWindow::addZoomAction(QWidget *widget)
+void MainWindow::addZoomActions(QWidget *widget)
 {
-    QAction* separator = new QAction(this);
-    separator->setSeparator(true);
     widget->addAction(m_zoomInAction);
     widget->addAction(m_zoomOutAction);
     widget->addAction(m_zoomOriginalAction);
-    widget->addAction(separator);
-    widget->addAction(m_zoomFitBestAction);
-    widget->addAction(m_zoomFitHeightAction);
-    widget->addAction(m_zoomFitWidthAction);
 }
 
 void MainWindow::checkPaths()
