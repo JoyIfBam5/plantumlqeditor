@@ -10,6 +10,7 @@
 #include <QtGui>
 #include <QtSvg>
 #include <QtSingleApplication>
+#include <QScrollArea>
 
 namespace {
 const int ASSISTANT_ITEM_DATA_ROLE = Qt::UserRole;
@@ -98,7 +99,12 @@ MainWindow::MainWindow(QWidget *parent)
     m_imageFormatNames[PngFormat] = "png";
 
     m_imageWidget = new PreviewWidget(this);
-    setCentralWidget(m_imageWidget);
+
+    m_imageWidgetScrollArea = new QScrollArea;
+    m_imageWidgetScrollArea->setWidget(m_imageWidget);
+    m_imageWidgetScrollArea->setAlignment(Qt::AlignCenter);
+    m_imageWidgetScrollArea->setWidgetResizable(true);
+    setCentralWidget(m_imageWidgetScrollArea);
 
     createDockWindows();
     createActions();

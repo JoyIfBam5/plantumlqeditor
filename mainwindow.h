@@ -18,6 +18,7 @@ class QListWidgetItem;
 class FileCache;
 class RecentDocuments;
 class QSignalMapper;
+class QScrollArea;
 
 class MainWindow : public QMainWindow
 {
@@ -126,8 +127,10 @@ private:
     bool m_needsRefresh;
 
     QTextEdit *m_editor;
+    // the main image widget, which renders to svg or png
+    // and the scroll area container used to add scroll bars
     PreviewWidget *m_imageWidget;
-
+    QScrollArea* m_imageWidgetScrollArea;
     QToolBox *m_assistantToolBox;
     QLabel *m_assistantPreviewNotes;
     QTextEdit *m_assistantCodePreview;
