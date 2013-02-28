@@ -44,6 +44,18 @@ const QString SETTINGS_RECENT_DOCUMENTS_SECTION = "RecentDocuments";
 
 const QString SETTINGS_PREFERENCES_SECTION = "Preferences";
 
+const QString SETTINGS_EDITOR_SECTION = "Editor";
+
+const QString SETTINGS_EDITOR_FONT = "font";
+const QString SETTINGS_EDITOR_INDENT = "indent";
+const bool    SETTINGS_EDITOR_INDENT_DEFAULT = true;
+const QString SETTINGS_EDITOR_INDENT_SIZE = "indent_size";
+const int     SETTINGS_EDITOR_INDENT_SIZE_DEFAULT = 4;
+const QString SETTINGS_EDITOR_INDENT_WITH_SPACE = "indent_with_space";
+const bool    SETTINGS_EDITOR_INDENT_WITH_SPACE_DEFAULT = true;
+const QString SETTINGS_EDITOR_REFRESH_ON_SAVE = "reafresh_on_save";
+const bool    SETTINGS_EDITOR_REFRESH_ON_SAVE_DEFAULT = false;
+
 const int TIMEOUT_SCALE = 1000;
 
 #if defined(Q_WS_WIN)

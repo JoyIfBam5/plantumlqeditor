@@ -6,6 +6,7 @@
 #include "filecache.h"
 #include "recentdocuments.h"
 #include "utils.h"
+#include "textedit.h"
 
 #include <QtGui>
 #include <QtSvg>
@@ -208,7 +209,7 @@ QString MainWindow::makeKeyForDocument(QByteArray current_document)
 bool MainWindow::refreshFromCache()
 {
     if (m_useCache) {
-        QByteArray current_document = m_editor->toPlainText().toAscii().trimmed();
+        QByteArray current_document = m_editor->toPlainText().toUtf8().trimmed();
         if (current_document.isEmpty()) {
             qDebug() << "empty document. skipping...";
             return true;
@@ -265,7 +266,7 @@ void MainWindow::refresh(bool forced)
         return;
     }
 
-    QByteArray current_document = m_editor->toPlainText().toAscii().trimmed();
+    QByteArray current_document = m_editor->toPlainText().toUtf8().trimmed();
     if (current_document.isEmpty()) {
         qDebug() << "empty document. skipping...";
         return;
@@ -409,6 +410,8 @@ void MainWindow::onOpenDocumentActionTriggered()
 void MainWindow::onSaveActionTriggered()
 {
     saveDocument(m_documentPath);
+    if (m_refreshOnSave)
+        onRefreshActionTriggered();
 }
 
 void MainWindow::onSaveAsActionTriggered()
@@ -594,6 +597,23 @@ void MainWindow::readSettings(bool reload)
 
     settings.endGroup();
 
+    settings.beginGroup(SETTINGS_EDITOR_SECTION);
+
+    QFont defaultFont;
+    QFont editorFont;
+    editorFont.fromString(settings.value(SETTINGS_EDITOR_FONT,
+                                         defaultFont.toString()).toString());
+    m_editor->setFont(editorFont);
+    m_editor->setAutoIndent(settings.value(SETTINGS_EDITOR_INDENT, SETTINGS_EDITOR_INDENT_DEFAULT).toBool());
+    m_editor->setIndentWithSpace(settings.value(SETTINGS_EDITOR_INDENT_WITH_SPACE,
+                                                SETTINGS_EDITOR_INDENT_WITH_SPACE_DEFAULT).toBool());
+    m_editor->setIndentSize(settings.value(SETTINGS_EDITOR_INDENT_SIZE,
+                                           SETTINGS_EDITOR_INDENT_SIZE_DEFAULT).toInt());
+
+    m_refreshOnSave = settings.value(SETTINGS_EDITOR_REFRESH_ON_SAVE, SETTINGS_EDITOR_REFRESH_ON_SAVE_DEFAULT).toBool();
+
+    settings.endGroup();
+
     m_recentDocuments->readFromSettings(settings, SETTINGS_RECENT_DOCUMENTS_SECTION);
     updateCacheSizeInfo();
 }
@@ -657,7 +677,7 @@ void MainWindow::openDocument(const QString &name)
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         return;
     }
-    m_editor->setPlainText(file.readAll());
+    m_editor->setPlainText(QString::fromUtf8(file.readAll()));
     setWindowModified(false);
     m_documentPath = tmp_name;
     setWindowTitle(TITLE_FORMAT_STRING
@@ -688,7 +708,7 @@ bool MainWindow::saveDocument(const QString &name)
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         return false;
     }
-    file.write(m_editor->toPlainText().toAscii());
+    file.write(m_editor->toPlainText().toUtf8());
     file.close();
     m_documentPath = file_path;
     setWindowTitle(TITLE_FORMAT_STRING
@@ -988,7 +1008,7 @@ void MainWindow::createStatusBar()
 void MainWindow::createDockWindows()
 {
     QDockWidget *dock = new QDockWidget(tr("Text Editor"), this);
-    m_editor = new QTextEdit(dock);
+    m_editor = new TextEdit(dock);
     connect(m_editor->document(), SIGNAL(contentsChanged()), this, SLOT(onEditorChanged()));
     dock->setWidget(m_editor);
     dock->setObjectName("text_editor");

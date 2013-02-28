@@ -11,7 +11,7 @@ set (LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/)
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
-set (QT_QMAKE_EXECUTABLE $ENV{QT_QMAKE_EXECUTABLE})
+#set (QT_QMAKE_EXECUTABLE $ENV{QT_QMAKE_EXECUTABLE})
 find_package (Qt4 4.8 REQUIRED)
 include (UseQt4)
 set (CMAKE_AUTOMOC TRUE)
@@ -35,6 +35,8 @@ message ("Qt4 Headers:       ${QT_INCLUDES}")
 include_directories (${CMAKE_SOURCE_DIR})
 include_directories (${QT_INCLUDES})
 include_directories (${CMAKE_SOURCE_DIR}/thirdparty/qtsingleapplication/src)
+
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-subsystem,windows -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc")
 
 #-------------------------------------------------------------------------------
 # add to SOURCES files that will be tested with GMock and GTest
@@ -76,6 +78,7 @@ set (SOURCES_APP
     preferencesdialog.cpp
     previewwidget.cpp
     utils.cpp
+    textedit.cpp
 )
 
 set (EXTRA_HEADERS_APP

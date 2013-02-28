@@ -19,6 +19,7 @@ class FileCache;
 class RecentDocuments;
 class QSignalMapper;
 class QScrollArea;
+class TextEdit;
 
 class MainWindow : public QMainWindow
 {
@@ -107,6 +108,7 @@ private:
     bool m_useCustomGraphiz;
     bool m_useCache;
     bool m_useCustomCache;
+    bool m_refreshOnSave;
     int m_cacheMaxSize;
 
     QString m_javaPath;
@@ -127,7 +129,7 @@ private:
     QTimer *m_autoRefreshTimer;
     bool m_needsRefresh;
 
-    QTextEdit *m_editor;
+    TextEdit *m_editor;
     // the main image widget, which renders to svg or png
     // and the scroll area container used to add scroll bars
     PreviewWidget *m_imageWidget;

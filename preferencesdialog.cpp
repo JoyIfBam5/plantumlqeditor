@@ -68,6 +68,26 @@ void PreferencesDialog::readSettings()
 
     settings.endGroup();
 
+    settings.beginGroup(SETTINGS_EDITOR_SECTION);
+
+    QFont defaultFont;
+    QFont editorFont;
+    editorFont.fromString(settings.value(SETTINGS_EDITOR_FONT, defaultFont.toString()).toString());
+    m_ui->editorFontComboBox->setCurrentFont(editorFont);
+    m_ui->editorFontSizeSpinBox->setValue(editorFont.pointSize());
+
+    m_ui->useSpacesInsteadTabsCheckBox->setChecked(settings.value(SETTINGS_EDITOR_INDENT_WITH_SPACE,
+                                                                  SETTINGS_EDITOR_INDENT_WITH_SPACE_DEFAULT).toBool());
+
+    m_ui->indentSizeSpinBox->setValue(settings.value(SETTINGS_EDITOR_INDENT_SIZE,
+                                                     SETTINGS_EDITOR_INDENT_SIZE_DEFAULT).toInt());
+
+    m_ui->autoIndentCheckBox->setChecked(settings.value(SETTINGS_EDITOR_INDENT, SETTINGS_EDITOR_INDENT_DEFAULT).toBool());
+    m_ui->refreshOnSaveCheckBox->setChecked(settings.value(SETTINGS_EDITOR_REFRESH_ON_SAVE, SETTINGS_EDITOR_REFRESH_ON_SAVE_DEFAULT).toBool());
+
+    settings.endGroup();
+
+
     settings.beginGroup(SETTINGS_PREFERENCES_SECTION);
     restoreGeometry(settings.value(SETTINGS_GEOMETRY).toByteArray());
     settings.endGroup();
@@ -95,6 +115,18 @@ void PreferencesDialog::writeSettings()
     settings.setValue(SETTINGS_USE_CUSTOM_CACHE, m_ui->customCacheRadio->isChecked());
     settings.setValue(SETTINGS_CUSTOM_CACHE_PATH, m_ui->customCacheEdit->text());
     settings.setValue(SETTINGS_CACHE_MAX_SIZE, m_ui->cacheMaxSize->value() * CACHE_SCALE);
+
+    settings.endGroup();
+
+    settings.beginGroup(SETTINGS_EDITOR_SECTION);
+
+    QFont editorFont = m_ui->editorFontComboBox->currentFont();
+    editorFont.setPointSize(m_ui->editorFontSizeSpinBox->value());
+    settings.setValue(SETTINGS_EDITOR_FONT, editorFont.toString());
+    settings.setValue(SETTINGS_EDITOR_INDENT, m_ui->autoIndentCheckBox->isChecked());
+    settings.setValue(SETTINGS_EDITOR_INDENT_SIZE, m_ui->indentSizeSpinBox->value());
+    settings.setValue(SETTINGS_EDITOR_INDENT_WITH_SPACE, m_ui->useSpacesInsteadTabsCheckBox->isChecked());
+    settings.setValue(SETTINGS_EDITOR_REFRESH_ON_SAVE, m_ui->refreshOnSaveCheckBox->isChecked());
 
     settings.endGroup();
 
