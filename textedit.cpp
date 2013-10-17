@@ -110,8 +110,8 @@ void TextEdit::keyPressEvent(QKeyEvent *e)
                 int        pos            = block.length();
 
                 int i;
-                if (pos >= data.size())
-                    pos = data.size() - 1;
+                if (pos >= data.length())
+                    pos = data.length() - 1;
 
                 for (i = pos; i >= 0; --i)
                 {

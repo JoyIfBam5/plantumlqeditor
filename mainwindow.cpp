@@ -199,7 +199,7 @@ void MainWindow::about()
 QString MainWindow::makeKeyForDocument(QByteArray current_document)
 {
     QString key = QString("%1.%2")
-            .arg(QString::fromAscii(QCryptographicHash::hash(current_document, QCryptographicHash::Md5).toHex()))
+            .arg(QString::fromUtf8(QCryptographicHash::hash(current_document, QCryptographicHash::Md5).toHex()))
             .arg(m_imageFormatNames[m_currentImageFormat])
             ;
 
@@ -292,10 +292,14 @@ void MainWindow::refresh(bool forced)
             << "-jar" << m_plantUmlPath
             << QString("-t%1").arg(m_imageFormatNames[m_currentImageFormat]);
     if (m_useCustomGraphiz) arguments << "-graphizdot" << m_graphizPath;
-    arguments << "-pipe";
+    arguments << "-charset" << "UTF-8" << "-pipe";
 
     m_lastKey = key;
     m_process = new QProcess(this);
+
+    QFileInfo fi(m_documentPath);
+    m_process->setWorkingDirectory(fi.absolutePath());
+
     m_process->start(m_javaPath, arguments);
     if (!m_process->waitForStarted()) {
         qDebug() << "refresh subprocess failed to start";
@@ -528,7 +532,11 @@ bool MainWindow::maybeSave()
 
 void MainWindow::readSettings(bool reload)
 {
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     const QString DEFAULT_CACHE_PATH = QDesktopServices::storageLocation(QDesktopServices::CacheLocation);
+#else
+    const QString DEFAULT_CACHE_PATH = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+#endif
 
     QSettings settings;
 
@@ -595,6 +603,8 @@ void MainWindow::readSettings(bool reload)
     }
     m_currentImageFormatLabel->setText(m_imageFormatNames[m_currentImageFormat].toUpper());
 
+    m_lastDir = settings.value(SETTINGS_EDITOR_LAST_DIR, SETTINGS_EDITOR_LAST_DIR_DEFAULT).toString();
+
     settings.endGroup();
 
     settings.beginGroup(SETTINGS_EDITOR_SECTION);
@@ -649,6 +659,8 @@ void MainWindow::writeSettings()
     settings.setValue(SETTINGS_AUTOSAVE_IMAGE_ENABLED, m_autoSaveImageAction->isChecked());
     settings.setValue(SETTINGS_IMAGE_FORMAT, m_imageFormatNames[m_currentImageFormat]);
 
+    settings.setValue(SETTINGS_EDITOR_LAST_DIR, m_lastDir);
+
     settings.endGroup();
 
     m_recentDocuments->writeToSettings(settings, SETTINGS_RECENT_DOCUMENTS_SECTION);
@@ -665,11 +677,14 @@ void MainWindow::openDocument(const QString &name)
     if (tmp_name.isEmpty() || QFileInfo(tmp_name).exists() == false) {
         tmp_name = QFileDialog::getOpenFileName(this,
                                                 tr("Select a file to open"),
-                                                QString(tmp_name.isEmpty() ? "" : tmp_name),
+                                                m_lastDir,
                                                 "PlantUML (*.plantuml);; All Files (*.*)"
                                                 );
         if (tmp_name.isEmpty()) {
             return;
+        } else {
+            QFileInfo fi(tmp_name);
+            m_lastDir = fi.absolutePath();
         }
     }
 
@@ -695,11 +710,14 @@ bool MainWindow::saveDocument(const QString &name)
     if (file_path.isEmpty()) {
         file_path = QFileDialog::getSaveFileName(this,
                                                 tr("Select where to store the document"),
-                                                m_documentPath,
+                                                m_lastDir,
                                                 "PlantUML (*.plantuml);; All Files (*.*)"
                                                 );
         if (file_path.isEmpty()) {
             return false;
+        } else {
+            QFileInfo fi(file_path);
+            m_lastDir = fi.absolutePath();
         }
     }
 

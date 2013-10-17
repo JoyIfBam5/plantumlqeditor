@@ -18,7 +18,12 @@ PreferencesDialog::PreferencesDialog(FileCache* file_cache, QWidget *parent)
     m_ui->defaultJavaRadio->setText(tr("Default (%1)").arg(SETTINGS_CUSTOM_JAVA_PATH_DEFAULT));
     m_ui->defaultPlatUmlRadio->setText(tr("Default (%1)").arg(SETTINGS_CUSTOM_PLANTUML_PATH_DEFAULT));
     m_ui->defaultGraphizRadio->setText(tr("Default (%1)").arg(SETTINGS_CUSTOM_GRAPHIZ_PATH_DEFAULT));
+
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     m_ui->defaultCacheRadio->setText(tr("Default (%1)").arg(QDesktopServices::storageLocation(QDesktopServices::CacheLocation)));
+#else
+    m_ui->defaultCacheRadio->setText(tr("Default (%1)").arg(QStandardPaths::writableLocation(QStandardPaths::CacheLocation)));
+#endif
 
     if (m_fileCache) {
         m_ui->cacheCurrentSizeLabel->setText(cacheSizeToString(m_fileCache->totalCost()));

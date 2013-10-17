@@ -56,6 +56,9 @@ const bool    SETTINGS_EDITOR_INDENT_WITH_SPACE_DEFAULT = true;
 const QString SETTINGS_EDITOR_REFRESH_ON_SAVE = "reafresh_on_save";
 const bool    SETTINGS_EDITOR_REFRESH_ON_SAVE_DEFAULT = false;
 
+const QString SETTINGS_EDITOR_LAST_DIR = "last_work_dir";
+const QString SETTINGS_EDITOR_LAST_DIR_DEFAULT = "";
+
 const int TIMEOUT_SCALE = 1000;
 
 #if defined(Q_WS_WIN)

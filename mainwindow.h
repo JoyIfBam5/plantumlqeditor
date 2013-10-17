@@ -181,6 +181,8 @@ private:
 
     FileCache* m_cache;
     RecentDocuments* m_recentDocuments;
+
+    QString m_lastDir;
 };
 
 #endif // MAINWINDOW_H

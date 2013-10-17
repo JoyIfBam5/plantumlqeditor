@@ -17,3 +17,7 @@ target_link_libraries (qtsingleapplicationlib
     ${QT_QTGUI_LIBRARY}
     ${QT_QTNETWORK_LIBRARY}
 )
+
+if (${ENABLE_QT5})
+    qt5_use_modules(qtsingleapplicationlib Core Widgets Gui Network)
+endif()
