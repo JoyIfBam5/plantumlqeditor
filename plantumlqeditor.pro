@@ -10,8 +10,10 @@ TEMPLATE = app
 
 include(thirdparty/qtsingleapplication/src/qtsingleapplication.pri)
 
-SOURCES += main.cpp\
-        mainwindow.cpp \
+SOURCES += \
+    textedit.cpp \
+    main.cpp\
+    mainwindow.cpp \
     previewwidget.cpp \
     preferencesdialog.cpp \
     assistantxmlreader.cpp \
@@ -19,7 +21,9 @@ SOURCES += main.cpp\
     utils.cpp \
     recentdocuments.cpp
 
-HEADERS  += mainwindow.h \
+HEADERS += \
+    textedit.h \
+    mainwindow.h \
     previewwidget.h \
     preferencesdialog.h \
     assistantxmlreader.h \

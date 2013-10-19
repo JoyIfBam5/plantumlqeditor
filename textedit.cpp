@@ -175,7 +175,7 @@ void TextEdit::resizeEvent(QResizeEvent *e)
     lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
 }
 
-void TextEdit::updateLineNumberAreaWidth(int newBlockCount)
+void TextEdit::updateLineNumberAreaWidth(int /*newBlockCount*/)
 {
     setViewportMargins(lineNumberAreaWidth(), 0, 0, 0);
 }
