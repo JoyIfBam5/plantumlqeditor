@@ -11,7 +11,7 @@ set (LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/)
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-option (ENABLE_QT5 "Use Qt5 instead of Qt4" OFF)
+option (ENABLE_QT5 "Use Qt5 instead of Qt4" ON)
 if (${ENABLE_QT5})
     find_package(Qt5Core)
     find_package(Qt5Widgets)

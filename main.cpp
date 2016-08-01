@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName(APPLICATION_NAME);
 
     QtSingleApplication a(argc, argv);
+    a.setWindowIcon(QIcon(":/icon64.png"));
 
     QStringList options;
     for (int i = 1; i < argc; ++i) {

@@ -288,10 +288,11 @@ void MainWindow::refresh(bool forced)
 
     QStringList arguments;
 
-    arguments
-            << "-jar" << m_plantUmlPath
-            << QString("-t%1").arg(m_imageFormatNames[m_currentImageFormat]);
-    if (m_useCustomGraphiz) arguments << "-graphizdot" << m_graphizPath;
+    arguments << "-jar" << m_plantUmlPath
+              << QString("-t%1").arg(m_imageFormatNames[m_currentImageFormat]);
+    if (m_useCustomGraphiz) {
+        arguments << "-graphizdot" << m_graphizPath;
+    }
     arguments << "-charset" << "UTF-8" << "-pipe";
 
     m_lastKey = key;
@@ -332,7 +333,23 @@ void MainWindow::focusAssistant()
 
 void MainWindow::refreshFinished()
 {
+//    qDebug() << "Program:" << m_process->program();
+//    for (auto arg : m_process->arguments()) {
+//        qDebug() << arg.toLatin1().constData();
+//    }
+//    qDebug() << "Proc exit:" << m_process->exitCode()
+//             << "error" << m_process->error()
+//             << m_process->errorString();
+    if (m_process->exitCode() != 0) {
+        QString errorMessage = m_process->readAllStandardError();
+        QMessageBox::critical(this, tr("Error"),
+                              errorMessage,
+                              QMessageBox::Ok);
+        statusBar()->showMessage(errorMessage, STATUSBAR_TIMEOUT);
+        return;
+    }
     m_cachedImage = m_process->readAll();
+//    qDebug() << "Image size" << m_cachedImage.size();
     m_imageWidget->load(m_cachedImage);
     m_process->deleteLater();
     m_process = 0;
@@ -678,7 +695,7 @@ void MainWindow::openDocument(const QString &name)
         tmp_name = QFileDialog::getOpenFileName(this,
                                                 tr("Select a file to open"),
                                                 m_lastDir,
-                                                "PlantUML (*.plantuml);; All Files (*.*)"
+                                                "UML (*.uml);; PlantUML (*.plantuml);; All Files (*.*)"
                                                 );
         if (tmp_name.isEmpty()) {
             return;
@@ -711,11 +728,14 @@ bool MainWindow::saveDocument(const QString &name)
         file_path = QFileDialog::getSaveFileName(this,
                                                 tr("Select where to store the document"),
                                                 m_lastDir,
-                                                "PlantUML (*.plantuml);; All Files (*.*)"
+                                                "UML (*.uml);; PlantUML (*.plantuml);; All Files (*.*)"
                                                 );
         if (file_path.isEmpty()) {
             return false;
         } else {
+            if (!file_path.contains(".uml") && !file_path.contains(".plantuml")) {
+                file_path.append(".uml");
+            }
             QFileInfo fi(file_path);
             m_lastDir = fi.absolutePath();
         }
