@@ -3,5 +3,6 @@
     <mime-type type="application/x-plantumlqeditor">
         <comment>PlantUML QEditor source file</comment>
         <glob pattern="*.plantuml"/>
+        <glob pattern="*.uml"/>
     </mime-type>
 </mime-info>
