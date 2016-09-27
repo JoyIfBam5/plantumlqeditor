@@ -19,7 +19,7 @@ AbstractFileCacheItem::AbstractFileCacheItem(const QString& path, const QString 
     , m_cost(cost)
     , m_dateTime(date_time)
 {
-    qDebug() << qPrintable(QString("new file cache item ->   key: %1   cost: %2   path: %3").arg(key, -10).arg(cost, -5).arg(m_path));
+//    qDebug() << qPrintable(QString("new file cache item ->   key: %1   cost: %2   path: %3").arg(key, -10).arg(cost, -5).arg(m_path));
 }
 
 AbstractFileCacheItem::~AbstractFileCacheItem()
@@ -46,7 +46,7 @@ void FileCacheItem::removeFileFromDisk(const QString& some_path) const
         throw FileCacheError();
 
     QDir().remove(path());
-    qDebug() << qPrintable(QString("removed cached file ->   key: %1   cost: %2   path: %3").arg(key(), -10).arg(cost(), -5).arg(path()));
+//    qDebug() << qPrintable(QString("removed cached file ->   key: %1   cost: %2   path: %3").arg(key(), -10).arg(cost(), -5).arg(path()));
     m_removed = true;
 }
 
@@ -148,7 +148,7 @@ void FileCache::clear()
 
 void FileCache::clearFromDisk()
 {
-    qDebug() << "clear from disk:" << m_path;
+//    qDebug() << "clear from disk:" << m_path;
 
     foreach (AbstractFileCacheItem* item, m_items) {
         item->removeFileFromDisk();
